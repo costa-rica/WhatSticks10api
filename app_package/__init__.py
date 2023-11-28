@@ -7,6 +7,7 @@ from logging.handlers import RotatingFileHandler
 from pytz import timezone
 from datetime import datetime
 from flask_mail import Mail
+from ws_models import Base
 
 if not os.path.exists(os.path.join(os.environ.get('API_ROOT'),'logs')):
     os.makedirs(os.path.join(os.environ.get('API_ROOT'), 'logs'))
