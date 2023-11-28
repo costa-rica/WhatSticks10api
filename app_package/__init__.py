@@ -97,12 +97,12 @@ def create_app(config_for_flask = config):
 
     from app_package.bp_users.routes import bp_users
     from app_package.bp_oura.routes import bp_oura
-    # from app_package.apple.routes import apple
+    from app_package.bp_apple_health.routes import bp_apple_health
     # from app_package.api.routes import api
 
     app.register_blueprint(bp_users)
     app.register_blueprint(bp_oura)
-    # app.register_blueprint(apple)
+    app.register_blueprint(bp_apple_health)
     # app.register_blueprint(api)
 
     return app
