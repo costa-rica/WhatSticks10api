@@ -72,6 +72,8 @@ def login():
             return make_response('Could not verify - user not found', 401)
 
         logger_bp_users.info(f"- checking password -")
+        logger_bp_users.info(f"- password: {auth.password.encode()} -")
+        logger_bp_users.info(f"- password: {bcrypt.checkpw(auth.password.encode(), user.password)} -")
 
 
         if auth.password:
@@ -79,7 +81,23 @@ def login():
                 # login_user(user)
                 serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
                 # return serializer.dumps({'user_id': self.id})
-                return serializer.dumps({'user_id': user.id})
+                print("Success!")
+
+                user_object_for_swift_app = {}
+                user_object_for_swift_app['id'] = str(user.id)
+                user_object_for_swift_app['email'] = user.email
+                user_object_for_swift_app['username'] = user.username
+                user_object_for_swift_app['password'] = "test"
+                user_object_for_swift_app['token'] = serializer.dumps({'user_id': user.id})
+                # user_object_for_swift_app['token'] = "token____special"
+                user_object_for_swift_app['admin'] = True
+
+
+
+
+
+                # return serializer.dumps({'user_id': user.id})
+                return jsonify(user_object_for_swift_app)
 
         return make_response('Could not verify', 401)
     else:
