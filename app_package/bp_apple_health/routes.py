@@ -45,7 +45,11 @@ def receive_steps(current_user):
     except Exception as e:
         logger_bp_apple_health.info(e)
         return jsonify({"status": "httpBody data recieved not json not parse-able."})
-
+    
+    logger_bp_apple_health.info(f"- ------------------------- -")
+    logger_bp_apple_health.info(f"- Count of Apple Health Data: {len(request_json)} -")
+    logger_bp_apple_health.info(f"- ------------------------- -")
+    
     logger_bp_apple_health.info(f"- request_json: {request_json} -")
 
     response_dict = {}
@@ -53,6 +57,10 @@ def receive_steps(current_user):
     for key,value in request_json.items():
         logger_bp_apple_health.info(f"- request_json key: {key} -")
         response_dict[key]=value
+    
+    count_of_entries = len(response_dict)
+    logger_bp_apple_health.info(f"- ------------------------- -")
+    logger_bp_apple_health.info(f"- count_of_entries: {count_of_entries} -")
+    logger_bp_apple_health.info(f"- ------------------------- -")
 
-
-    return jsonify({"Message":"We got the data", "response_dict":response_dict })
+    return jsonify({"Message":"We got the data", "count_of_entries":count_of_entries })
