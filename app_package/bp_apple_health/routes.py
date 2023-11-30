@@ -59,7 +59,7 @@ def receive_steps(current_user):
         logger_bp_apple_health.info(f"- request_json key: {apple_health_entry} -")
         # response_dict[key]=value
     
-    # count_of_entries = len(response_dict)
+    count_of_entries = len(request_json)
     # logger_bp_apple_health.info(f"- ------------------------- -")
     # logger_bp_apple_health.info(f"- count_of_entries: {count_of_entries} -")
     # logger_bp_apple_health.info(f"- ------------------------- -")
