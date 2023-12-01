@@ -50,18 +50,19 @@ def receive_steps(current_user):
     logger_bp_apple_health.info(f"- Count of Apple Health Data: {len(request_json)} -")
     logger_bp_apple_health.info(f"- ------------------------- -")
     
-    logger_bp_apple_health.info(f"- request_json: {request_json} -")
     logger_bp_apple_health.info(f"- request_json: {type(request_json)} -")
+    timestamp = datetime.now().strftime('%Y%m%d-%H%M')
+    json_data_path_and_name = os.path.join(os.environ.get('APPLE_HEALTH_DIR'),f"AppleHealth-user_id{current_user.id}-{timestamp}.json")
 
-    response_dict = {}
+    with open(json_data_path_and_name, 'w') as file:
+        json.dump(request_json, file, indent=4)
 
-    for apple_health_entry in request_json:
-        logger_bp_apple_health.info(f"- request_json key: {apple_health_entry} -")
+    # response_dict = {}
+
+    # for apple_health_entry in request_json:
+    #     logger_bp_apple_health.info(f"- request_json key: {apple_health_entry} -")
         # response_dict[key]=value
     
     count_of_entries = len(request_json)
-    # logger_bp_apple_health.info(f"- ------------------------- -")
-    # logger_bp_apple_health.info(f"- count_of_entries: {count_of_entries} -")
-    # logger_bp_apple_health.info(f"- ------------------------- -")
 
-    return jsonify({"Message":"We got the data", "count_of_entries":count_of_entries })
+    return jsonify({"Message":"Success! We got the data.", "count_of_entries":count_of_entries })
