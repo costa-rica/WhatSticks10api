@@ -138,7 +138,14 @@ def register():
 
         sess.add(new_user)
         sess.commit()
-        return jsonify({"message": f"new user created: {request_data.get('new_email')}", "id":f"{new_user.id}"})
+
+        response_dict = {}
+        response_dict["message"] = f"new user created: {request_data.get('new_email')}"
+        response_dict["id"] = f"{new_user.id}"
+        response_dict["username"] = f"{new_user.username}"
+
+
+        return jsonify(response_dict)
     else:
         # return make_response('Could not verify sender', 401)
         return jsonify({"message": f"Could not verify sender"})
