@@ -136,7 +136,7 @@ def register():
 
         sess.add(new_user)
         sess.commit()
-        return jsonify({"message": f"new user created: {request_data.get('email')}"})
+        return jsonify({"message": f"new user created: {request_data.get('email')}", "id":f"{new_user.id}"})
     else:
         # return make_response('Could not verify sender', 401)
         return jsonify({"message": f"Could not verify sender"})
