@@ -130,9 +130,11 @@ def register():
 
         for key, value in request_data.items():
             if key == "new_password":
-                setattr(new_user, "new_password", hash_pw)
-            elif key in Users.__table__.columns.keys():
-                setattr(new_user, key, value)
+                setattr(new_user, "password", hash_pw)
+            elif key == "new_email":
+                setattr(new_user, "email", request_data.get('new_email'))
+            # elif key in Users.__table__.columns.keys():
+            #     setattr(new_user, key, value)
 
         sess.add(new_user)
         sess.commit()
