@@ -109,19 +109,21 @@ def add_user():
     logger_bp_users.info(f"- add_user endpoint pinged -")
     # ws_api_password = request.form.get('WS_API_PASSWORD')
     ws_api_password = request.json.get('WS_API_PASSWORD')
-    print(ws_api_password)
-    print(request.json)
+    # logger_bp_users.info(ws_api_password)
+    logger_bp_users.info(request.json)
     if current_app.config.get('WS_API_PASSWORD') == ws_api_password:
 
         request_data = request.get_json()
 
         if request_data.get('email') in ("", None) or request_data.get('password') in ("" , None):
-            return make_response('User must have email and password', 409)
+            # return make_response('User must have email and password', 409)
+            return jsonify({"message": f"User must have email and password"})
 
         user_exists = sess.query(Users).filter_by(email= request_data.get('email')).first()
 
         if user_exists:
-            return make_response('User already exists', 409)
+            # return make_response('User already exists', 409)
+            return jsonify({"message": f"User already exists"})
 
         hash_pw = bcrypt.hashpw(request_data.get('password').encode(), salt)
         new_user = Users()
@@ -136,7 +138,9 @@ def add_user():
         sess.commit()
         return jsonify({"message": f"new user created: {request_data.get('email')}"})
     else:
-        return make_response('Could not verify sender', 401)
+        # return make_response('Could not verify sender', 401)
+        return jsonify({"message": f"Could not verify sender"})
+        
 
 
 
