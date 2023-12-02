@@ -104,9 +104,9 @@ def login():
         return make_response('Could note verify sender', 401)
 
 
-@bp_users.route('/add_user', methods=['POST'])
-def add_user():
-    logger_bp_users.info(f"- add_user endpoint pinged -")
+@bp_users.route('/register', methods=['POST'])
+def register():
+    logger_bp_users.info(f"- register endpoint pinged -")
     # ws_api_password = request.form.get('WS_API_PASSWORD')
     ws_api_password = request.json.get('WS_API_PASSWORD')
     # logger_bp_users.info(ws_api_password)
