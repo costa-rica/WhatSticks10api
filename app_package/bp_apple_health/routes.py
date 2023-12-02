@@ -54,6 +54,7 @@ def receive_steps(current_user):
         json.dump(request_json, file, indent=4)
     
     count_of_entries = len(request_json)
+    counter_loop_request_json = 0
 
     # for entry in json_data2[0:20]:
     for entry in request_json:
@@ -79,9 +80,13 @@ def receive_steps(current_user):
                 quantity = entry.get('quantity'))
             sess.add(new_entry)
             sess.commit()
-            print(f"UUID {entry.get('UUID')} Added ****")
+            if counter_loop_request_json < 3:
+                logger_bp_apple_health.info(f"UUID {entry.get('UUID')} Added ****")
         else:
-            print(f"UUID {entry.get('UUID')} already exists")
+            if counter_loop_request_json < 3:
+                logger_bp_apple_health.info(f"UUID {entry.get('UUID')} already exists")
+        
+        counter_loop_request_json += 1
 
 
     return jsonify({"Message":"Success! We got the data.", "count_of_entries":count_of_entries })
