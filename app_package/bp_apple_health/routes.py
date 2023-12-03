@@ -13,6 +13,8 @@ import json
 from app_package.utilsDecorators import token_required
 import requests
 # from app_package.bp_apple_health.utils import add_oura_sleep_to_OuraSleepDescriptions
+from sqlalchemy import and_
+
 
 
 formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
