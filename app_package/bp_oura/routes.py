@@ -40,8 +40,18 @@ def add_oura_token(current_user):
     logger_bp_oura.info(f"- add_oura_token endpoint pinged -")
     logger_bp_oura.info(f"current user: {current_user}")
     response_dict = {}
+    try:
+        request_json = request.json
+        logger_bp_oura.info(f"request_json: {request_json}")
+    except Exception as e:
+        response_dict['error':e]
+        response_dict['status':"httpBody data recieved not json not parse-able."]
+        logger_bp_oura.info(e)
+        logger_bp_oura.info(f"- response_dict: {response_dict} -")
+        # return jsonify({"status": "httpBody data recieved not json not parse-able."})
+        return jsonify(response_dict)
 
-    if current_app.config.get('WS_API_PASSWORD') == request.json.get('WS_API_PASSWORD'):
+    if current_app.config.get('WS_API_PASSWORD') == request_json.get('WS_API_PASSWORD'):
 
         request_data = request.get_json()
         new_oura_token = request_data.get('oura_token')
