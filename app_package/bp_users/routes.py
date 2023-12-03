@@ -1,6 +1,6 @@
 from flask import Blueprint
 from flask import request, jsonify, make_response, current_app
-from ws_models import sess, Users
+from ws_models import sess, Users, OuraToken
 from werkzeug.security import generate_password_hash, check_password_hash #password hashing
 import bcrypt
 #import jwt #token creating thing
@@ -89,12 +89,10 @@ def login():
                 user_object_for_swift_app['username'] = user.username
                 user_object_for_swift_app['password'] = "test"
                 user_object_for_swift_app['token'] = serializer.dumps({'user_id': user.id})
+                user_object_for_swift_app['oura_token'] = sess.query(OuraToken).filter_by(user_id=user.id).first().token
+
                 # user_object_for_swift_app['token'] = "token____special"
                 user_object_for_swift_app['admin'] = True
-
-
-
-
 
                 # return serializer.dumps({'user_id': user.id})
                 return jsonify(user_object_for_swift_app)

@@ -55,6 +55,16 @@ def add_oura_sleep_to_OuraSleepDescriptions(user_id, token_id, response_oura_sle
             count_added += 1
         else:
             count_already_existing += 1
-        
+    
+
+    user_oura_session_count = sess.get(OuraSleepDescriptions,user_id)
+
     logger_bp_oura.info(f"Sleep sessions count: {count_of_sleep}, added: {count_added}, already existed: {count_already_existing}")
+    dict_summary = {}
+    dict_summary["sleep_sessions_added"] = "{:,}".format(count_added)
+    dict_summary["record_count"] = "{:,}".format(user_oura_session_count)
+
+
+
+    return dict_summary
     

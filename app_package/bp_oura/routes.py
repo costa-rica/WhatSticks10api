@@ -39,6 +39,7 @@ logger_bp_oura.info(f'- WhatSticks10 API users Bluprints initialized')
 def add_oura_token(current_user):
     logger_bp_oura.info(f"- add_oura_token endpoint pinged -")
     print("current user: ", current_user)
+    response_dict = {}
 
     if current_app.config.get('WS_API_PASSWORD') == request.json.get('WS_API_PASSWORD'):
 
@@ -48,8 +49,9 @@ def add_oura_token(current_user):
         new_token_record = OuraToken(token=new_oura_token, user_id=current_user.id)
         sess.add(new_token_record)
         sess.commit()
-    
-        return jsonify({"message": f"Successfully added token for {current_user.email} !"})
+
+        response_dict["message"] = f"Successfully added token for {current_user.email} !"
+        return jsonify(response_dict)
     else:
         return make_response('Could not verify sender', 401)
 
@@ -57,6 +59,7 @@ def add_oura_token(current_user):
 @token_required
 def add_oura_sleep_sessions(current_user):
     logger_bp_oura.info(f"- add_oura_sleep_sessions endpoint pinged -")
+    response_dict = {}
 
     if current_app.config.get('WS_API_PASSWORD') == request.json.get('WS_API_PASSWORD'):
 
@@ -73,9 +76,9 @@ def add_oura_sleep_sessions(current_user):
             with open(os.path.join(current_app.config.get('DIR_DB_AUX_OURA_SLEEP_RESPONSES'),file_name_oura_json), 'r') as file:
                 response_oura_sleep = json.load(file)
             
-            add_oura_sleep_to_OuraSleepDescriptions(current_user.id, current_user.oura_token_id[0].token, response_oura_sleep)
-
-            return jsonify({"message": f"Already have Oura download for today  {os.path.join(current_app.config.get('DIR_DB_AUX_OURA_SLEEP_RESPONSES'),file_name_oura_json)} !"})
+            response_dict = add_oura_sleep_to_OuraSleepDescriptions(current_user.id, current_user.oura_token_id[0].token, response_oura_sleep)
+            response_dict['message']= f"Already have Oura download for today  {os.path.join(current_app.config.get('DIR_DB_AUX_OURA_SLEEP_RESPONSES'),file_name_oura_json)} !"
+            return jsonify(response_dict)
             
         else:
             logger_bp_oura.info(f"No file named: {os.path.join(current_app.config.get('DIR_DB_AUX_OURA_SLEEP_RESPONSES'),file_name_oura_json)}")
@@ -88,9 +91,10 @@ def add_oura_sleep_sessions(current_user):
             with open(os.path.join(current_app.config.get('DIR_DB_AUX_OURA_SLEEP_RESPONSES'),file_name_oura_json), 'w') as file:
                 json.dump(response_sleep.json(), file)
 
-            add_oura_sleep_to_OuraSleepDescriptions(current_user.id, current_user.oura_token_id[0].token, response_oura_sleep)
+            response_dict = add_oura_sleep_to_OuraSleepDescriptions(current_user.id, current_user.oura_token_id[0].token, response_oura_sleep)
+            response_dict['message']= f"Successfully saved oura json data  {os.path.join(current_app.config.get('DIR_DB_AUX_OURA_SLEEP_RESPONSES'),file_name_oura_json)} !"
+            return jsonify(response_dict)
 
-            return jsonify({"message": f"Successfully saved oura json data  {os.path.join(current_app.config.get('DIR_DB_AUX_OURA_SLEEP_RESPONSES'),file_name_oura_json)} !"})
     else:
         return make_response('Could not verify sender', 401)
 
