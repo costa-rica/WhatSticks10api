@@ -44,8 +44,8 @@ def add_oura_token(current_user):
         request_json = request.json
         logger_bp_oura.info(f"request_json: {request_json}")
     except Exception as e:
-        response_dict['error':e]
-        response_dict['status':"httpBody data recieved not json not parse-able."]
+        response_dict['error'] = e
+        response_dict['status']="httpBody data recieved not json not parse-able."
         logger_bp_oura.info(e)
         logger_bp_oura.info(f"- response_dict: {response_dict} -")
         # return jsonify({"status": "httpBody data recieved not json not parse-able."})
@@ -74,8 +74,8 @@ def add_oura_sleep_sessions(current_user):
         request_json = request.json
         logger_bp_oura.info(f"request_json: {request_json}")
     except Exception as e:
-        response_dict['error':e]
-        response_dict['status':"httpBody data recieved not json not parse-able."]
+        response_dict['error'] = e
+        response_dict['status']="httpBody data recieved not json not parse-able."
         logger_bp_oura.info(e)
         logger_bp_oura.info(f"- response_dict: {response_dict} -")
         # return jsonify({"status": "httpBody data recieved not json not parse-able."})
