@@ -38,14 +38,14 @@ logger_bp_oura.info(f'- WhatSticks10 API users Bluprints initialized')
 @token_required
 def add_oura_token(current_user):
     logger_bp_oura.info(f"- add_oura_token endpoint pinged -")
-    print("current user: ", current_user)
+    logger_bp_oura.info("current user: ", current_user)
     response_dict = {}
 
     if current_app.config.get('WS_API_PASSWORD') == request.json.get('WS_API_PASSWORD'):
 
         request_data = request.get_json()
         new_oura_token = request_data.get('oura_token')
-        print('new_oura_token', new_oura_token)
+        logger_bp_oura.info('new_oura_token', new_oura_token)
         new_token_record = OuraToken(token=new_oura_token, user_id=current_user.id)
         sess.add(new_token_record)
         sess.commit()
