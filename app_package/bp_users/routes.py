@@ -89,7 +89,9 @@ def login():
                 user_object_for_swift_app['username'] = user.username
                 user_object_for_swift_app['password'] = "test"
                 user_object_for_swift_app['token'] = serializer.dumps({'user_id': user.id})
-                user_object_for_swift_app['oura_token'] = sess.query(OuraToken).filter_by(user_id=user.id).first().token
+                oura_token_obj = sess.query(OuraToken).filter_by(user_id=user.id).first()
+                if oura_token_obj and oura_token_obj.token is not None:
+                    user_object_for_swift_app['oura_token'] = oura_token_obj.token
 
                 # user_object_for_swift_app['token'] = "token____special"
                 user_object_for_swift_app['admin'] = True
