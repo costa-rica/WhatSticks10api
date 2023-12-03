@@ -88,5 +88,8 @@ def receive_steps(current_user):
         
         counter_loop_request_json += 1
 
-
-    return jsonify({"Message":"Success! We got the data.", "count_of_entries":count_of_entries })
+    response_dict = {}
+    response_dict['Message'] = "Success! We got the data."
+    response_dict['count_of_entries'] = count_of_entries
+    logger_bp_apple_health.info(f"- response_dict: {response_dict} -")
+    return jsonify(response_dict)
