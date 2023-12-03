@@ -61,19 +61,26 @@ def receive_steps(current_user):
     count_of_entries = len(request_json)
     counter_loop_request_json = 0
 
-    # for entry in json_data2[0:20]:
-    for entry in request_json:
-            # Check if a record with the same user_id, UUID, and sampleType already exists
-        exists = sess.query(AppleHealhKit).filter_by(
-            user_id=1, 
-            UUID=entry.get('UUID'), 
-            sampleType=entry.get('sampleType')
-        ).first() is not None
+    # request_uuids = [entry.get('UUID') for entry in request_json]
+    # existing_uuids = set(sess.query(AppleHealhKit.UUID).filter(AppleHealhKit.UUID.in_(request_uuids)).all())
 
-        if not exists:
-        
-            new_entry = AppleHealhKit(user_id = 1,
-                sampleType = entry.get('sampleType'),
+    unique_identifiers = [(entry.get('UUID'), entry.get('sampleType'), current_user.id) for entry in request_json]
+    existing_records = sess.query(AppleHealhKit.UUID, AppleHealhKit.sampleType).filter(
+        and_(
+            AppleHealhKit.UUID.in_([uuid for uuid, _, _ in unique_identifiers]),
+            AppleHealhKit.sampleType.in_([sampleType for _, sampleType, _ in unique_identifiers]),
+            AppleHealhKit.user_id == current_user.id
+        )
+    ).all()
+    existing_identifiers = set(existing_records)
+
+    new_entries = []
+    for entry in request_json:
+        identifier = (entry.get('UUID'), entry.get('sampleType'), current_user.id)
+        if identifier not in existing_identifiers:
+            new_entry = AppleHealhKit(
+                user_id=current_user.id,
+                sampleType=entry.get('sampleType'),
                 startDate = entry.get('startDate'),
                 endDate = entry.get('endDate'),
                 metadataAppleHealth = entry.get('metadata'),
@@ -83,15 +90,43 @@ def receive_steps(current_user):
                 device = entry.get('device'),
                 UUID = entry.get('UUID'),
                 quantity = entry.get('quantity'))
-            sess.add(new_entry)
-            sess.commit()
-            if counter_loop_request_json < 3:
-                logger_bp_apple_health.info(f"UUID {entry.get('UUID')} Added ****")
-        else:
-            if counter_loop_request_json < 3:
-                logger_bp_apple_health.info(f"UUID {entry.get('UUID')} already exists")
+            new_entries.append(new_entry)
+
+    sess.bulk_save_objects(new_entries)
+    sess.commit()
+
+
+    # # for entry in json_data2[0:20]:
+    # for entry in request_json:
+    #         # Check if a record with the same user_id, UUID, and sampleType already exists
+    #     exists = sess.query(AppleHealhKit).filter_by(
+    #         user_id=1, 
+    #         UUID=entry.get('UUID'), 
+    #         sampleType=entry.get('sampleType')
+    #     ).first() is not None
+
+    #     if not exists:
         
-        counter_loop_request_json += 1
+    #         new_entry = AppleHealhKit(user_id = 1,
+    #             sampleType = entry.get('sampleType'),
+    #             startDate = entry.get('startDate'),
+    #             endDate = entry.get('endDate'),
+    #             metadataAppleHealth = entry.get('metadata'),
+    #             sourceName = entry.get('sourceName'),
+    #             sourceVersion = entry.get('sourceVersion'),
+    #             sourceProductType = entry.get('sourceProductType'),
+    #             device = entry.get('device'),
+    #             UUID = entry.get('UUID'),
+    #             quantity = entry.get('quantity'))
+    #         sess.add(new_entry)
+    #         sess.commit()
+    #         if counter_loop_request_json < 3:
+    #             logger_bp_apple_health.info(f"UUID {entry.get('UUID')} Added ****")
+    #     else:
+    #         if counter_loop_request_json < 3:
+    #             logger_bp_apple_health.info(f"UUID {entry.get('UUID')} already exists")
+        
+    #     counter_loop_request_json += 1
 
     response_dict = {}
     response_dict['Message'] = "Success! We got the data."
