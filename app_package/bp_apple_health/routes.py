@@ -38,12 +38,17 @@ logger_bp_apple_health.info(f'- WhatSticks10 API users Bluprints initialized')
 @token_required
 def receive_steps(current_user):
     logger_bp_apple_health.info(f"- accessed  receive_steps endpoint-")
-
+    response_dict = {}
     try:
         request_json = request.json
     except Exception as e:
+        response_dict['error':e]
+        response_dict['status':"httpBody data recieved not json not parse-able."]
+
         logger_bp_apple_health.info(e)
-        return jsonify({"status": "httpBody data recieved not json not parse-able."})
+        logger_bp_apple_health.info(f"- response_dict: {response_dict} -")
+        # return jsonify({"status": "httpBody data recieved not json not parse-able."})
+        return jsonify(response_dict)
     
     logger_bp_apple_health.info(f"- Count of Apple Health Data: {len(request_json)} -")
     logger_bp_apple_health.info(f"- request_json: {type(request_json)} -")
