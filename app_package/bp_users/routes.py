@@ -1,6 +1,6 @@
 from flask import Blueprint
 from flask import request, jsonify, make_response, current_app
-from ws_models import sess, Users, OuraToken
+from ws_models import sess, Users, OuraToken, OuraSleepDescriptions, AppleHealhKit
 from werkzeug.security import generate_password_hash, check_password_hash #password hashing
 import bcrypt
 #import jwt #token creating thing
@@ -96,7 +96,22 @@ def login():
                 # user_object_for_swift_app['token'] = "token____special"
                 user_object_for_swift_app['admin'] = True
 
-                # return serializer.dumps({'user_id': user.id})
+                oura_health_stuct = {}
+                oura_health_stuct['name']='Oura'
+                user_oura_sessions = sess.query(OuraSleepDescriptions).filter_by(user_id=user.id).all()
+                if user_oura_sessions is not None:
+                    oura_health_stuct['recordCount']="{:,}".format(len(user_oura_sessions))
+                user_object_for_swift_app['ouraHealthStruct']=oura_health_stuct
+
+                apple_health_struct = {}
+                apple_health_struct['name']="Apple Health"
+                apple_health_records = sess.query(AppleHealhKit).filter_by(user_id=user.id).all()
+                if apple_health_records is not None:
+                    apple_health_struct['recordCount']="{:,}".format(len(apple_health_records))
+                user_object_for_swift_app['appleHealthStruct']=apple_health_struct
+
+
+                logger_bp_users.info(f"- user_object_for_swift_app: {user_object_for_swift_app} -")
                 return jsonify(user_object_for_swift_app)
 
         return make_response('Could not verify', 401)

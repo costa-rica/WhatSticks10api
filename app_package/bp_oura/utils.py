@@ -25,9 +25,12 @@ logger_bp_oura.addHandler(stream_handler)
 def add_oura_sleep_to_OuraSleepDescriptions(user_id, token_id, response_oura_sleep):
     if isinstance(response_oura_sleep, dict):
         list_oura_sleep_sessions = response_oura_sleep.get('sleep')
+        print("- oura file read here -")
     else:
-        with open(response_oura_sleep, 'r') as file:
-            list_oura_sleep_sessions = json.load(file).get('sleep')
+        print("***** oura coming from OURA API response")
+        # with open(response_oura_sleep, 'r') as file:
+        #     list_oura_sleep_sessions = json.load(file).get('sleep')
+        list_oura_sleep_sessions = response_oura_sleep.json().get('sleep')
     # if type(response_oura_sleep) == "dict":
     #     list_oura_sleep_sessions = response_oura_sleep.get('sleep')
     # else:
@@ -65,7 +68,7 @@ def add_oura_sleep_to_OuraSleepDescriptions(user_id, token_id, response_oura_sle
     
 
     # user_oura_session_count = sess.get(OuraSleepDescriptions,user_id)
-    user_oura_sessions = sess.query(OuraSleepDescriptions).filter_by(user_id=1).all()
+    user_oura_sessions = sess.query(OuraSleepDescriptions).filter_by(user_id=user_id).all()
 
     logger_bp_oura.info(f"Sleep sessions count: {count_of_sleep}, added: {count_added}, already existed: {count_already_existing}")
     dict_summary = {}
