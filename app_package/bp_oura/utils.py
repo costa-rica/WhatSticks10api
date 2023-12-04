@@ -24,7 +24,7 @@ logger_bp_oura.addHandler(stream_handler)
 
 def add_oura_sleep_to_OuraSleepDescriptions(user_id, token_id, response_oura_sleep):
 
-    list_oura_sleep_sessions = response_oura_sleep.get('sleep')
+    list_oura_sleep_sessions = json.load(response_oura_sleep).get('sleep')
 
     count_of_sleep = len(list_oura_sleep_sessions)
     count_added = 0
