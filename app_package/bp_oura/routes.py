@@ -64,13 +64,13 @@ def add_oura_token(current_user):
 def add_oura_sleep_sessions(current_user):
     logger_bp_oura.info(f"- add_oura_sleep_sessions endpoint pinged -")
     response_dict = {}
-    try:
-        request_json = request.json
-        logger_bp_oura.info(f"request_json: {request_json}")
-    except Exception as e:
-        logger_bp_oura.info(f"failed to read json, error: {e}")
-        response = jsonify({"error": str(e)})
-        return make_response(response, 400)
+    # try:
+    #     request_json = request.json
+    #     logger_bp_oura.info(f"request_json: {request_json}")
+    # except Exception as e:
+    #     logger_bp_oura.info(f"failed to read json, error: {e}")
+    #     response = jsonify({"error": str(e)})
+    #     return make_response(response, 400)
 
     current_date = datetime.now().strftime("%Y%m%d")
     # Construct the file_name_oura_json
