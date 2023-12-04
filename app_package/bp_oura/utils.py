@@ -23,11 +23,15 @@ logger_bp_oura.addHandler(stream_handler)
 
 
 def add_oura_sleep_to_OuraSleepDescriptions(user_id, token_id, response_oura_sleep):
-
-    if type(response_oura_sleep) == "dict":
+    if isinstance(response_oura_sleep, dict):
         list_oura_sleep_sessions = response_oura_sleep.get('sleep')
     else:
-        list_oura_sleep_sessions = json.load(response_oura_sleep).get('sleep')
+        with open(response_oura_sleep, 'r') as file:
+            list_oura_sleep_sessions = json.load(file).get('sleep')
+    # if type(response_oura_sleep) == "dict":
+    #     list_oura_sleep_sessions = response_oura_sleep.get('sleep')
+    # else:
+    #     list_oura_sleep_sessions = json.load(response_oura_sleep).get('sleep')
 
     count_of_sleep = len(list_oura_sleep_sessions)
     count_added = 0
