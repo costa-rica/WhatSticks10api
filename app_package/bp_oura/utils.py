@@ -64,12 +64,13 @@ def add_oura_sleep_to_OuraSleepDescriptions(user_id, token_id, response_oura_sle
             count_already_existing += 1
     
 
-    user_oura_session_count = sess.get(OuraSleepDescriptions,user_id)
+    # user_oura_session_count = sess.get(OuraSleepDescriptions,user_id)
+    user_oura_sessions = sess.query(OuraSleepDescriptions).filter_by(user_id=1).all()
 
     logger_bp_oura.info(f"Sleep sessions count: {count_of_sleep}, added: {count_added}, already existed: {count_already_existing}")
     dict_summary = {}
     dict_summary["sleep_sessions_added"] = "{:,}".format(count_added)
-    dict_summary["record_count"] = "{:,}".format(user_oura_session_count)
+    dict_summary["record_count"] = "{:,}".format(len(user_oura_sessions))
 
 
 
