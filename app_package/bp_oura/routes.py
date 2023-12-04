@@ -96,7 +96,7 @@ def add_oura_sleep_sessions(current_user):
 
         # save response to JSON file in DIR_DB_AUX_OURA_SLEEP_RESPONSES with name: oura_sleep-YYYYMMDDHHSS-user_id.json
         with open(os.path.join(current_app.config.get('DIR_DB_AUX_OURA_SLEEP_RESPONSES'),file_name_oura_json), 'w') as file:
-            json.dump(response_sleep.json(), file)
+            json.dump(response_oura_sleep.json(), file)
 
         response_dict = add_oura_sleep_to_OuraSleepDescriptions(current_user.id, current_user.oura_token_id[0].token, response_oura_sleep)
         response_dict['message']= f"Successfully saved oura json data  {os.path.join(current_app.config.get('DIR_DB_AUX_OURA_SLEEP_RESPONSES'),file_name_oura_json)} !"
