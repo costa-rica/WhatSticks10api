@@ -44,16 +44,9 @@ def add_oura_token(current_user):
         request_json = request.json
         logger_bp_oura.info(f"request_json: {request_json}")
     except Exception as e:
-        # response_dict['error'] = e
-        # response_dict['status']="httpBody data recieved not json not parse-able."
-        logger_bp_oura.info(e)
-        logger_bp_oura.info(f"- response_dict: {response_dict} -")
-        # return jsonify({"status": "httpBody data recieved not json not parse-able."})
-        # return jsonify(response_dict)
+        logger_bp_oura.info(f"failed to read json, error: {e}")
         response = jsonify({"error": str(e)})
         return make_response(response, 400)
-
-    # if current_app.config.get('WS_API_PASSWORD') == request_json.get('WS_API_PASSWORD'):
 
     request_data = request.get_json()
     new_oura_token = request_data.get('oura_token')
@@ -64,9 +57,7 @@ def add_oura_token(current_user):
     response_dict = {}
     response_dict["message"] = f"Successfully added token for {current_user.email} !"
     return jsonify(response_dict)
-    # else:
-    #     response = jsonify({"error": 'Could not verify sender'})
-    #     return make_response(response, 401)
+
 
 @bp_oura.route('/add_oura_sleep_sessions', methods=['POST'])
 @token_required
@@ -77,19 +68,10 @@ def add_oura_sleep_sessions(current_user):
         request_json = request.json
         logger_bp_oura.info(f"request_json: {request_json}")
     except Exception as e:
-        # response_dict['error'] = e
-        # response_dict['status']="httpBody data recieved not json not parse-able."
-        logger_bp_oura.info(e)
-        logger_bp_oura.info(f"- response_dict: {response_dict} -")
-        # return jsonify({"status": "httpBody data recieved not json not parse-able."})
-        # return jsonify(response_dict)
+        logger_bp_oura.info(f"failed to read json, error: {e}")
         response = jsonify({"error": str(e)})
         return make_response(response, 400)
 
-    # if current_app.config.get('WS_API_PASSWORD') == request.json.get('WS_API_PASSWORD'):
-
-    # Get current date and time
-    # current_time = datetime.now().strftime("%Y%m%d%H%M%S")
     current_date = datetime.now().strftime("%Y%m%d")
     # Construct the file_name_oura_json
     file_name_oura_json = f"oura_sleep-{current_date}-user_id{current_user.id}.json"
@@ -119,9 +101,5 @@ def add_oura_sleep_sessions(current_user):
         response_dict = add_oura_sleep_to_OuraSleepDescriptions(current_user.id, current_user.oura_token_id[0].token, response_oura_sleep)
         response_dict['message']= f"Successfully saved oura json data  {os.path.join(current_app.config.get('DIR_DB_AUX_OURA_SLEEP_RESPONSES'),file_name_oura_json)} !"
         return jsonify(response_dict)
-
-    # else:
-    #     response = jsonify({"error": 'Could not verify sender'})
-    #     return make_response(response, 401)
 
 
