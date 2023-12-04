@@ -39,17 +39,19 @@ logger_bp_oura.info(f'- WhatSticks10 API users Bluprints initialized')
 def add_oura_token(current_user):
     logger_bp_oura.info(f"- add_oura_token endpoint pinged -")
     logger_bp_oura.info(f"current user: {current_user}")
-    response_dict = {}
+    
     try:
         request_json = request.json
         logger_bp_oura.info(f"request_json: {request_json}")
     except Exception as e:
-        response_dict['error'] = e
-        response_dict['status']="httpBody data recieved not json not parse-able."
+        # response_dict['error'] = e
+        # response_dict['status']="httpBody data recieved not json not parse-able."
         logger_bp_oura.info(e)
         logger_bp_oura.info(f"- response_dict: {response_dict} -")
         # return jsonify({"status": "httpBody data recieved not json not parse-able."})
-        return jsonify(response_dict)
+        # return jsonify(response_dict)
+        response = jsonify({"error": str(e)})
+        return make_response(response, 400)
 
     if current_app.config.get('WS_API_PASSWORD') == request_json.get('WS_API_PASSWORD'):
 
@@ -59,11 +61,12 @@ def add_oura_token(current_user):
         new_token_record = OuraToken(token=new_oura_token, user_id=current_user.id)
         sess.add(new_token_record)
         sess.commit()
-
+        response_dict = {}
         response_dict["message"] = f"Successfully added token for {current_user.email} !"
         return jsonify(response_dict)
     else:
-        return make_response('Could not verify sender', 401)
+        response = jsonify({"error": 'Could not verify sender'})
+        return make_response(response, 401)
 
 @bp_oura.route('/add_oura_sleep_sessions', methods=['POST'])
 @token_required
@@ -74,12 +77,14 @@ def add_oura_sleep_sessions(current_user):
         request_json = request.json
         logger_bp_oura.info(f"request_json: {request_json}")
     except Exception as e:
-        response_dict['error'] = e
-        response_dict['status']="httpBody data recieved not json not parse-able."
+        # response_dict['error'] = e
+        # response_dict['status']="httpBody data recieved not json not parse-able."
         logger_bp_oura.info(e)
         logger_bp_oura.info(f"- response_dict: {response_dict} -")
         # return jsonify({"status": "httpBody data recieved not json not parse-able."})
-        return jsonify(response_dict)
+        # return jsonify(response_dict)
+        response = jsonify({"error": str(e)})
+        return make_response(response, 400)
 
     if current_app.config.get('WS_API_PASSWORD') == request.json.get('WS_API_PASSWORD'):
 
@@ -116,6 +121,7 @@ def add_oura_sleep_sessions(current_user):
             return jsonify(response_dict)
 
     else:
-        return make_response('Could not verify sender', 401)
+        response = jsonify({"error": 'Could not verify sender'})
+        return make_response(response, 401)
 
 
