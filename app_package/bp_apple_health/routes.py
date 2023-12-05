@@ -37,10 +37,33 @@ bp_apple_health = Blueprint('bp_apple_health', __name__)
 logger_bp_apple_health.info(f'- WhatSticks10 API users Bluprints initialized')
 
 
-@bp_apple_health.route('/receive_steps', methods=['POST'])
+
+@bp_apple_health.route('/delete_apple_health_for_user', methods=['POST'])
 @token_required
-def receive_steps(current_user):
-    logger_bp_apple_health.info(f"- accessed  receive_steps endpoint-")
+def delete_apple_health_for_user(current_user):
+    logger_bp_apple_health.info(f"- accessed  delete_apple_health_for_user endpoint-")
+    response_dict = {}
+    try:
+        count_deleted_rows = sess.query(AppleHealhKit).filter_by(user_id = 1).delete()
+        sess.commit()
+    except Exception as e:
+        session.rollback()
+        logger_bp_apple_health.info(f"failed to delete data, error: {e}")
+        response = jsonify({"error": str(e)})
+        return make_response(response, 500)
+
+    response_dict = {}
+    response_dict['message'] = response_message
+    response_dict['count_deleted_rows'] = "{:,}".format(count_deleted_rows)
+
+    logger_bp_apple_health.info(f"- response_dict: {response_dict} -")
+    return jsonify(response_dict)
+
+
+@bp_apple_health.route('/receive_apple_health_data', methods=['POST'])
+@token_required
+def receive_apple_health_data(current_user):
+    logger_bp_apple_health.info(f"- accessed  receive_apple_health_data endpoint-")
     response_dict = {}
     try:
         request_json = request.json
@@ -117,17 +140,16 @@ def receive_steps(current_user):
         sess.bulk_save_objects(new_entries)
         sess.commit()
         response_message = "Success! We got the data."
+        count_of_added_records = len(new_entries)
     except IntegrityError as e:
         sess.rollback()
         duplicate_entries_count = len(new_entries)
         response_message = "Data partially added. Some entries were duplicates and ignored."
-
-
-
-
+        count_of_added_records = 0
 
     response_dict = {}
     response_dict['message'] = response_message
     response_dict['count_of_entries'] = "{:,}".format(count_of_entries)
+    response_dict['count_of_added_records'] = "{:,}".format(count_of_added_records)
     logger_bp_apple_health.info(f"- response_dict: {response_dict} -")
     return jsonify(response_dict)
