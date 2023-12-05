@@ -56,6 +56,7 @@ def delete_apple_health_for_user(current_user):
 
     response_dict['message'] = response_message
     response_dict['count_deleted_rows'] = "{:,}".format(count_deleted_rows)
+    response_dict['count_of_entries'] = "0"
 
     logger_bp_apple_health.info(f"- response_dict: {response_dict} -")
     return jsonify(response_dict)
