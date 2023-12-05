@@ -66,8 +66,18 @@ def receive_steps(current_user):
     unique_identifiers = [(entry.get('UUID'), entry.get('sampleType'), current_user.id) for entry in request_json]
     logger_bp_apple_health.info(f"--------------")
     logger_bp_apple_health.info(f"- unique_identifiers[0:20]: {unique_identifiers[0:20]} -")
-    logger_bp_apple_health.info(f"- len(unique_identifiers: {len(unique_identifiers)} -")
-    existing_records = sess.query(AppleHealhKit.UUID, AppleHealhKit.sampleType).filter(
+    logger_bp_apple_health.info(f"- len(unique_identifiers) -count of all trying to add-: {len(unique_identifiers)} -")
+    # existing_records = sess.query(AppleHealhKit.UUID, AppleHealhKit.sampleType).filter(
+    #     and_(
+    #         AppleHealhKit.UUID.in_([uuid for uuid, _, _ in unique_identifiers]),
+    #         AppleHealhKit.sampleType.in_([sampleType for _, sampleType, _ in unique_identifiers]),
+    #         AppleHealhKit.user_id == current_user.id
+    #     )
+    # ).all()
+    # logger_bp_apple_health.info(f"- len(existing_records: {len(existing_records)} -")
+    # existing_identifiers = set(existing_records)
+
+    existing_records = sess.query(AppleHealhKit.UUID, AppleHealhKit.sampleType, AppleHealhKit.user_id).filter(
         and_(
             AppleHealhKit.UUID.in_([uuid for uuid, _, _ in unique_identifiers]),
             AppleHealhKit.sampleType.in_([sampleType for _, sampleType, _ in unique_identifiers]),
@@ -76,6 +86,7 @@ def receive_steps(current_user):
     ).all()
     logger_bp_apple_health.info(f"- len(existing_records: {len(existing_records)} -")
     existing_identifiers = set(existing_records)
+
 
     new_entries = []
     for entry in request_json:
@@ -94,6 +105,8 @@ def receive_steps(current_user):
                 UUID = entry.get('UUID'),
                 quantity = entry.get('quantity'))
             new_entries.append(new_entry)
+
+    logger_bp_apple_health.info(f"- len(new_entries) -count to be added-: {len(new_entries)} -")
 
     sess.bulk_save_objects(new_entries)
     sess.commit()
