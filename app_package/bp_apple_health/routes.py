@@ -66,6 +66,7 @@ def receive_steps(current_user):
     unique_identifiers = [(entry.get('UUID'), entry.get('sampleType'), current_user.id) for entry in request_json]
     logger_bp_apple_health.info(f"--------------")
     logger_bp_apple_health.info(f"- unique_identifiers[0:20]: {unique_identifiers[0:20]} -")
+    logger_bp_apple_health.info(f"- len(unique_identifiers: {len(unique_identifiers)} -")
     existing_records = sess.query(AppleHealhKit.UUID, AppleHealhKit.sampleType).filter(
         and_(
             AppleHealhKit.UUID.in_([uuid for uuid, _, _ in unique_identifiers]),
@@ -73,6 +74,7 @@ def receive_steps(current_user):
             AppleHealhKit.user_id == current_user.id
         )
     ).all()
+    logger_bp_apple_health.info(f"- len(existing_records: {len(existing_records)} -")
     existing_identifiers = set(existing_records)
 
     new_entries = []
