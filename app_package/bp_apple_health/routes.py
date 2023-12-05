@@ -46,13 +46,14 @@ def delete_apple_health_for_user(current_user):
     try:
         count_deleted_rows = sess.query(AppleHealhKit).filter_by(user_id = 1).delete()
         sess.commit()
+        response_message = f"successfully deleted {count_deleted_rows} records"
     except Exception as e:
         session.rollback()
         logger_bp_apple_health.info(f"failed to delete data, error: {e}")
-        response = jsonify({"error": str(e)})
-        return make_response(response, 500)
+        response_message = f"failed to delete, error {e} "
+        # response = jsonify({"error": str(e)})
+        return make_response(jsonify({"error":response_message}), 500)
 
-    response_dict = {}
     response_dict['message'] = response_message
     response_dict['count_deleted_rows'] = "{:,}".format(count_deleted_rows)
 
