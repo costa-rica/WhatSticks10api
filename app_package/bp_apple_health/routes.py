@@ -91,15 +91,6 @@ def receive_apple_health_data(current_user):
     logger_bp_apple_health.info(f"--------------")
     logger_bp_apple_health.info(f"- unique_identifiers[0:20]: {unique_identifiers[0:20]} -")
     logger_bp_apple_health.info(f"- len(unique_identifiers) -count of all trying to add-: {len(unique_identifiers)} -")
-    # existing_records = sess.query(AppleHealhKit.UUID, AppleHealhKit.sampleType).filter(
-    #     and_(
-    #         AppleHealhKit.UUID.in_([uuid for uuid, _, _ in unique_identifiers]),
-    #         AppleHealhKit.sampleType.in_([sampleType for _, sampleType, _ in unique_identifiers]),
-    #         AppleHealhKit.user_id == current_user.id
-    #     )
-    # ).all()
-    # logger_bp_apple_health.info(f"- len(existing_records: {len(existing_records)} -")
-    # existing_identifiers = set(existing_records)
 
     existing_records = sess.query(AppleHealhKit.UUID, AppleHealhKit.sampleType, AppleHealhKit.user_id).filter(
         and_(
@@ -133,9 +124,6 @@ def receive_apple_health_data(current_user):
 
     logger_bp_apple_health.info(f"- len(new_entries) -count to be added-: {len(new_entries)} -")
 
-    sess.bulk_save_objects(new_entries)
-    sess.commit()
-
     try:
         sess.bulk_save_objects(new_entries)
         sess.commit()
@@ -143,8 +131,8 @@ def receive_apple_health_data(current_user):
         count_of_added_records = len(new_entries)
     except IntegrityError as e:
         sess.rollback()
-        duplicate_entries_count = len(new_entries)
-        response_message = "Data partially added. Some entries were duplicates and ignored."
+        logger_bp_apple_health.error(f"IntegrityError: {e}")
+        response_message = "No data added. Encountered duplicates."
         count_of_added_records = 0
 
     response_dict = {}
