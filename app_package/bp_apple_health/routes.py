@@ -63,10 +63,9 @@ def receive_steps(current_user):
     count_of_entries = len(request_json)
     counter_loop_request_json = 0
 
-    # request_uuids = [entry.get('UUID') for entry in request_json]
-    # existing_uuids = set(sess.query(AppleHealhKit.UUID).filter(AppleHealhKit.UUID.in_(request_uuids)).all())
-
     unique_identifiers = [(entry.get('UUID'), entry.get('sampleType'), current_user.id) for entry in request_json]
+    logger_bp_apple_health.info(f"--------------")
+    logger_bp_apple_health.info(f"- unique_identifiers[0:20]: {unique_identifiers[0:20]} -")
     existing_records = sess.query(AppleHealhKit.UUID, AppleHealhKit.sampleType).filter(
         and_(
             AppleHealhKit.UUID.in_([uuid for uuid, _, _ in unique_identifiers]),
@@ -97,38 +96,6 @@ def receive_steps(current_user):
     sess.bulk_save_objects(new_entries)
     sess.commit()
 
-
-    # # for entry in json_data2[0:20]:
-    # for entry in request_json:
-    #         # Check if a record with the same user_id, UUID, and sampleType already exists
-    #     exists = sess.query(AppleHealhKit).filter_by(
-    #         user_id=1, 
-    #         UUID=entry.get('UUID'), 
-    #         sampleType=entry.get('sampleType')
-    #     ).first() is not None
-
-    #     if not exists:
-        
-    #         new_entry = AppleHealhKit(user_id = 1,
-    #             sampleType = entry.get('sampleType'),
-    #             startDate = entry.get('startDate'),
-    #             endDate = entry.get('endDate'),
-    #             metadataAppleHealth = entry.get('metadata'),
-    #             sourceName = entry.get('sourceName'),
-    #             sourceVersion = entry.get('sourceVersion'),
-    #             sourceProductType = entry.get('sourceProductType'),
-    #             device = entry.get('device'),
-    #             UUID = entry.get('UUID'),
-    #             quantity = entry.get('quantity'))
-    #         sess.add(new_entry)
-    #         sess.commit()
-    #         if counter_loop_request_json < 3:
-    #             logger_bp_apple_health.info(f"UUID {entry.get('UUID')} Added ****")
-    #     else:
-    #         if counter_loop_request_json < 3:
-    #             logger_bp_apple_health.info(f"UUID {entry.get('UUID')} already exists")
-        
-    #     counter_loop_request_json += 1
 
     response_dict = {}
     response_dict['Message'] = "Success! We got the data."
