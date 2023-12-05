@@ -104,7 +104,8 @@ def receive_steps(current_user):
                 sourceProductType = entry.get('sourceProductType'),
                 device = entry.get('device'),
                 UUID = entry.get('UUID'),
-                quantity = entry.get('quantity'))
+                quantity = entry.get('quantity'),
+                value = entry.get('value'))
             new_entries.append(new_entry)
 
     logger_bp_apple_health.info(f"- len(new_entries) -count to be added-: {len(new_entries)} -")
