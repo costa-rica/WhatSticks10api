@@ -111,9 +111,21 @@ def receive_steps(current_user):
     sess.bulk_save_objects(new_entries)
     sess.commit()
 
+    try:
+        sess.bulk_save_objects(new_entries)
+        sess.commit()
+        response_message = "Success! We got the data."
+    except IntegrityError as e:
+        sess.rollback()
+        duplicate_entries_count = len(new_entries)
+        response_message = "Data partially added. Some entries were duplicates and ignored."
+
+
+
+
 
     response_dict = {}
-    response_dict['Message'] = "Success! We got the data."
+    response_dict['message'] = response_message
     response_dict['count_of_entries'] = "{:,}".format(count_of_entries)
     logger_bp_apple_health.info(f"- response_dict: {response_dict} -")
     return jsonify(response_dict)
