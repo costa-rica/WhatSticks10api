@@ -86,7 +86,7 @@ def receive_apple_health_data(current_user):
     with open(json_data_path_and_name, 'w') as file:
         json.dump(request_json, file, indent=4)
     
-    count_of_entries = len(request_json)
+    count_of_entries_sent_by_ios = len(request_json)
     counter_loop_request_json = 0
 
     unique_identifiers = [(entry.get('UUID'), entry.get('sampleType'), current_user.id) for entry in request_json]
@@ -137,9 +137,12 @@ def receive_apple_health_data(current_user):
         response_message = "No data added. Encountered duplicates."
         count_of_added_records = 0
 
+    count_of_user_apple_health_records = sess.query(AppleHealhKit).filter_by(user_id=current_user.id).all()
+
     response_dict = {}
     response_dict['message'] = response_message
-    response_dict['count_of_entries'] = "{:,}".format(count_of_entries)
+    response_dict['count_of_entries_sent_by_ios'] = "{:,}".format(count_of_entries_sent_by_ios)
+    response_dict['count_of_user_apple_health_records'] = "{:,}".format(len(count_of_user_apple_health_records))
     response_dict['count_of_added_records'] = "{:,}".format(count_of_added_records)
     logger_bp_apple_health.info(f"- response_dict: {response_dict} -")
     return jsonify(response_dict)
