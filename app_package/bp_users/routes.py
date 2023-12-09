@@ -1,6 +1,6 @@
 from flask import Blueprint
 from flask import request, jsonify, make_response, current_app
-from ws_models import sess, Users, OuraToken, OuraSleepDescriptions, AppleHealhKit
+from ws_models import sess, Users, OuraToken, OuraSleepDescriptions, AppleHealthKit
 from werkzeug.security import generate_password_hash, check_password_hash #password hashing
 import bcrypt
 import datetime
@@ -90,7 +90,7 @@ def login():
 
             # apple_health_struct = {}
             # apple_health_struct['name']="Apple Health"
-            # apple_health_records = sess.query(AppleHealhKit).filter_by(user_id=user.id).all()
+            # apple_health_records = sess.query(AppleHealthKit).filter_by(user_id=user.id).all()
             # if apple_health_records is not None:
             #     apple_health_struct['recordCount']="{:,}".format(len(apple_health_records))
             # user_object_for_swift_app['appleHealthStruct']=apple_health_struct
@@ -165,13 +165,13 @@ def send_dashboard_health_data_objects(current_user):
     #get user's apple health record count
     dashboard_health_data_object_apple_health={}
     dashboard_health_data_object_apple_health['name']="Apple Health Data"
-    record_count_apple_health = sess.query(AppleHealhKit).filter_by(user_id=current_user.id).all()
+    record_count_apple_health = sess.query(AppleHealthKit).filter_by(user_id=current_user.id).all()
     dashboard_health_data_object_apple_health['recordCount']="{:,}".format(len(record_count_apple_health))
     response_list.append(dashboard_health_data_object_apple_health)
 
 
     # try:
-    #     count_deleted_rows = sess.query(AppleHealhKit).filter_by(user_id = 1).delete()
+    #     count_deleted_rows = sess.query(AppleHealthKit).filter_by(user_id = 1).delete()
     #     sess.commit()
     #     response_message = f"successfully deleted {count_deleted_rows} records"
     # except Exception as e:

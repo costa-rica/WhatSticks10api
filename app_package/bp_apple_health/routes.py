@@ -1,6 +1,6 @@
 from flask import Blueprint
 from flask import request, jsonify, make_response, current_app
-from ws_models import sess, Users, AppleHealhKit
+from ws_models import sess, Users, AppleHealthKit
 from werkzeug.security import generate_password_hash, check_password_hash #password hashing
 import bcrypt
 from datetime import datetime
@@ -44,7 +44,7 @@ def delete_apple_health_for_user(current_user):
     logger_bp_apple_health.info(f"- accessed  delete_apple_health_for_user endpoint-")
     response_dict = {}
     try:
-        count_deleted_rows = sess.query(AppleHealhKit).filter_by(user_id = 1).delete()
+        count_deleted_rows = sess.query(AppleHealthKit).filter_by(user_id = 1).delete()
         sess.commit()
         response_message = f"successfully deleted {count_deleted_rows} records"
     except Exception as e:
@@ -94,11 +94,11 @@ def receive_apple_health_data(current_user):
     logger_bp_apple_health.info(f"- unique_identifiers[0:20]: {unique_identifiers[0:20]} -")
     logger_bp_apple_health.info(f"- len(unique_identifiers) -count of all trying to add-: {len(unique_identifiers)} -")
 
-    existing_records = sess.query(AppleHealhKit.UUID, AppleHealhKit.sampleType, AppleHealhKit.user_id).filter(
+    existing_records = sess.query(AppleHealthKit.UUID, AppleHealthKit.sampleType, AppleHealthKit.user_id).filter(
         and_(
-            AppleHealhKit.UUID.in_([uuid for uuid, _, _ in unique_identifiers]),
-            AppleHealhKit.sampleType.in_([sampleType for _, sampleType, _ in unique_identifiers]),
-            AppleHealhKit.user_id == current_user.id
+            AppleHealthKit.UUID.in_([uuid for uuid, _, _ in unique_identifiers]),
+            AppleHealthKit.sampleType.in_([sampleType for _, sampleType, _ in unique_identifiers]),
+            AppleHealthKit.user_id == current_user.id
         )
     ).all()
     logger_bp_apple_health.info(f"- len(existing_records: {len(existing_records)} -")
@@ -109,7 +109,7 @@ def receive_apple_health_data(current_user):
     for entry in request_json:
         identifier = (entry.get('UUID'), entry.get('sampleType'), current_user.id)
         if identifier not in existing_identifiers:
-            new_entry = AppleHealhKit(
+            new_entry = AppleHealthKit(
                 user_id=current_user.id,
                 sampleType=entry.get('sampleType'),
                 startDate = entry.get('startDate'),
@@ -137,7 +137,7 @@ def receive_apple_health_data(current_user):
         response_message = "No data added. Encountered duplicates."
         count_of_added_records = 0
 
-    count_of_user_apple_health_records = sess.query(AppleHealhKit).filter_by(user_id=current_user.id).all()
+    count_of_user_apple_health_records = sess.query(AppleHealthKit).filter_by(user_id=current_user.id).all()
 
     response_dict = {}
     response_dict['message'] = response_message
