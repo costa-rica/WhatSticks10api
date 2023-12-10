@@ -100,7 +100,7 @@ def receive_apple_health_data(current_user):
 
     # Define batch size
     batch_size = 100  # Adjust this number based on your needs
-    count_of_added_records = 0
+    total_added_records = 0
     # Process data in batches
     for i in range(0, len(sorted_request_json), batch_size):
         batch = sorted_request_json[i:i + batch_size]
