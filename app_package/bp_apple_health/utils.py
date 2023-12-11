@@ -55,7 +55,7 @@ def add_apple_health_to_database(user_id,apple_health_list_of_dictionary_file_na
     sorted_request_json = sorted(apple_health_list_of_dictionary_records, key=lambda x: x.get('startDate'))
 
     # Define batch size
-    batch_size = 500  # Adjust this number based on your needs
+    batch_size = 1000  # Adjust this number based on your needs
     total_added_records = 0
     # Process data in batches
     for i in range(0, len(sorted_request_json), batch_size):
