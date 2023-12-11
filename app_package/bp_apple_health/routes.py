@@ -79,13 +79,16 @@ def receive_apple_health_data(current_user):
         # return jsonify({"status": "httpBody data recieved not json not parse-able."})
         return jsonify(response_dict)
     
-    logger_bp_apple_health.info(f"- Count of Apple Health Data: {len(request_json)} -")
-    logger_bp_apple_health.info(f"- request_json: {type(request_json)} -")
+    logger_bp_apple_health.info(f"- Count of Apple Health Data received: {len(request_json)} -")
+    logger_bp_apple_health.info(f"- request_json type: {type(request_json)} -")
     timestamp = datetime.now().strftime('%Y%m%d-%H%M')
     json_data_path_and_name = os.path.join(current_app.config.get('APPLE_HEALTH_DIR'),f"AppleHealth-user_id{current_user.id}-{timestamp}.json")
 
     with open(json_data_path_and_name, 'w') as file:
         json.dump(request_json, file, indent=4)
+    
+    logger_bp_apple_health.info(f"- successfully saved apple health data in: {json_data_path_and_name} -")
+    logger_bp_apple_health.info(f"- now working on adding to the what sticks database -")
     
     count_of_entries_sent_by_ios = len(request_json)
     counter_loop_request_json = 0
