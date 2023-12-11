@@ -56,13 +56,13 @@ def add_apple_health_to_database(user_id,apple_health_list_of_dictionary_file_na
 
     # Define batch size
     batch_size = 1000  # Adjust this number based on your needs
-    total_added_records = 0
+    count_of_added_records = 0
     # Process data in batches
     for i in range(0, len(sorted_request_json), batch_size):
         batch = sorted_request_json[i:i + batch_size]
         try:
             added_count = add_batch_to_database(batch, user_id)
-            total_added_records += added_count
+            count_of_added_records += added_count
             logger_bp_apple_health.info(f"- adding batch i: {str(i)} -")
         except IntegrityError:
             # If a batch fails, try adding each entry individually
@@ -70,7 +70,7 @@ def add_apple_health_to_database(user_id,apple_health_list_of_dictionary_file_na
             for entry in batch:
                 try:
                     if add_entry_to_database(entry, user_id):
-                        total_added_records += 1
+                        count_of_added_records += 1
                 except IntegrityError:
                     # Skip the remaining data after encountering a duplicate
                     logger_bp_apple_health.info(f"- failed to add batch i: {str(i)} --> skipping the rest -")
@@ -81,7 +81,7 @@ def add_apple_health_to_database(user_id,apple_health_list_of_dictionary_file_na
             break
 
 
-    logger_bp_apple_health.info(f"- count to be added (i.e. new_entries): {len(new_entries)} -")
+    logger_bp_apple_health.info(f"- count_of_added_records: {count_of_added_records} -")
 
     count_of_user_apple_health_records = sess.query(AppleHealthKit).filter_by(user_id=current_user.id).all()
 
