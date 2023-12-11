@@ -122,6 +122,10 @@ def receive_apple_health_data(current_user):
                     # Skip the remaining data after encountering a duplicate
                     logger_bp_apple_health.info(f"- failed to add batch i: {str(i)} --> skipping the rest -")
                     break
+        except Exception as e:
+            # Catchall exception handling
+            logger_bp_apple_health.error(f"An error occurred while processing batch {i}: {e}")
+            # Optionally, you 
 
 
     logger_bp_apple_health.info(f"- count to be added (i.e. new_entries): {len(new_entries)} -")
