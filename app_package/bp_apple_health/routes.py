@@ -93,7 +93,7 @@ def receive_apple_health_data(current_user):
     unique_identifiers = [(entry.get('UUID'), entry.get('sampleType'), current_user.id) for entry in request_json]
     logger_bp_apple_health.info(f"--------------")
     logger_bp_apple_health.info(f"- unique_identifiers[0:20]: {unique_identifiers[0:20]} -")
-    logger_bp_apple_health.info(f"- len(unique_identifiers) -count of all trying to add-: {len(unique_identifiers)} -")
+    logger_bp_apple_health.info(f"- count of all trying to add (i.e. unique_identifiers): {len(unique_identifiers)} -")
 
     # Sort the data by startDate
     sorted_request_json = sorted(request_json, key=lambda x: x.get('startDate'))
@@ -107,18 +107,21 @@ def receive_apple_health_data(current_user):
         try:
             added_count = add_batch_to_database(batch, current_user)
             total_added_records += added_count
+            logger_bp_apple_health.info(f"- adding batch i: {str(i)} -")
         except IntegrityError:
             # If a batch fails, try adding each entry individually
+            logger_bp_apple_health.info(f"- failed to add batch i: {str(i)} -")
             for entry in batch:
                 try:
                     if add_entry_to_database(entry, current_user):
                         total_added_records += 1
                 except IntegrityError:
                     # Skip the remaining data after encountering a duplicate
+                    logger_bp_apple_health.info(f"- failed to add batch i: {str(i)} --> skipping the rest -")
                     break
 
 
-    logger_bp_apple_health.info(f"- len(new_entries) -count to be added-: {len(new_entries)} -")
+    logger_bp_apple_health.info(f"- count to be added (i.e. new_entries): {len(new_entries)} -")
 
     count_of_user_apple_health_records = sess.query(AppleHealthKit).filter_by(user_id=current_user.id).all()
 
