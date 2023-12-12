@@ -36,6 +36,10 @@ logger_bp_apple_health.addHandler(stream_handler)
 bp_apple_health = Blueprint('bp_apple_health', __name__)
 logger_bp_apple_health.info(f'- WhatSticks10 API users Bluprints initialized')
 
+# Assuming your dates are in a format like '2023-11-11 10:35:46 +0000'
+def parse_date(date_str):
+    return datetime.strptime(date_str.split(' ')[0], '%Y-%m-%d')
+
 
 def add_apple_health_to_database(user_id, apple_health_list_of_dictionary_file_name):
     logger_bp_apple_health.info("- accessed bp_apple_health/utils.py add_apple_health_to_database -")
@@ -44,7 +48,8 @@ def add_apple_health_to_database(user_id, apple_health_list_of_dictionary_file_n
     json_data_path_and_name = os.path.join(current_app.config.get('APPLE_HEALTH_DIR'), apple_health_list_of_dictionary_file_name)
     with open(json_data_path_and_name, 'r') as file:
         apple_health_list_of_dictionary_records = json.load(file)
-        sorted_request_json = sorted(apple_health_list_of_dictionary_records, key=lambda x: x.get('startDate'))
+        # sorted_request_json = sorted(apple_health_list_of_dictionary_records, key=lambda x: x.get('startDate'))
+        sorted_request_json = sorted(apple_health_list_of_dictionary_records, key=lambda x: parse_date(x.get('startDate')))
 
     count_of_entries_sent_by_ios = len(sorted_request_json)
     batch_size = 1000  # Adjust this number based on your needs
@@ -56,17 +61,17 @@ def add_apple_health_to_database(user_id, apple_health_list_of_dictionary_file_n
             added_count = add_batch_to_database(batch, user_id)
             count_of_added_records += added_count
             logger_bp_apple_health.info(f"- adding batch i: {i} -")
-        except IntegrityError:
-            # Switch to adding records individually
+        except IntegrityError as e:
+            logger_bp_apple_health.error(f"IntegrityError encountered: {e}")
+            sess.rollback()  # Rollback the session to a clean state
             for entry in batch:
                 try:
                     if add_entry_to_database(entry, user_id):
                         count_of_added_records += 1
-                except IntegrityError:
-                    # Stop the process as we have reached data already present
-                    logger_bp_apple_health.info(f"- encountered duplicate at batch i: {i}, stopping process -")
-                    break
-            break  # Exit the batch processing loop
+                except IntegrityError as e2:
+                    logger_bp_apple_health.error(f"IntegrityError encountered on individual entry: {e2}")
+                    break  # Duplicate entry found, stop processing
+            break  # Stop processing further batches
 
     # Final logging and response
     logger_bp_apple_health.info(f"- count_of_added_records: {count_of_added_records} -")
@@ -80,6 +85,7 @@ def add_apple_health_to_database(user_id, apple_health_list_of_dictionary_file_n
     }
     logger_bp_apple_health.info(f"- response_dict: {response_dict} -")
     return response_dict
+
 
 def add_batch_to_database(batch, user_id):
     logger_bp_apple_health.info(f"- add_batch_to_database length of batch: {len(batch)} -")
