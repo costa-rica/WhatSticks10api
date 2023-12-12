@@ -37,69 +37,53 @@ bp_apple_health = Blueprint('bp_apple_health', __name__)
 logger_bp_apple_health.info(f'- WhatSticks10 API users Bluprints initialized')
 
 
-def add_apple_health_to_database(user_id,apple_health_list_of_dictionary_file_name):
-    logger_bp_apple_health.info(f"- accessed  bp_apple_health/utils.py add_apple_health_to_database() -")
+def add_apple_health_to_database(user_id, apple_health_list_of_dictionary_file_name):
+    logger_bp_apple_health.info("- accessed bp_apple_health/utils.py add_apple_health_to_database -")
 
-    json_data_path_and_name = os.path.join(current_app.config.get('APPLE_HEALTH_DIR'),apple_health_list_of_dictionary_file_name)
+    # Load and sort data
+    json_data_path_and_name = os.path.join(current_app.config.get('APPLE_HEALTH_DIR'), apple_health_list_of_dictionary_file_name)
     with open(json_data_path_and_name, 'r') as file:
         apple_health_list_of_dictionary_records = json.load(file)
-    count_of_entries_sent_by_ios = len(apple_health_list_of_dictionary_records)
-    counter_loop_request_json = 0
+        sorted_request_json = sorted(apple_health_list_of_dictionary_records, key=lambda x: x.get('startDate'))
 
-    unique_identifiers = [(entry.get('UUID'), entry.get('sampleType'), user_id) for entry in apple_health_list_of_dictionary_records]
-    logger_bp_apple_health.info(f"--------------")
-    logger_bp_apple_health.info(f"- unique_identifiers[0:20]: {unique_identifiers[0:20]} -")
-    logger_bp_apple_health.info(f"- count of all trying to add (i.e. unique_identifiers): {len(unique_identifiers)} -")
-
-    # Sort the data by startDate
-    sorted_request_json = sorted(apple_health_list_of_dictionary_records, key=lambda x: x.get('startDate'))
-
-    # Define batch size
-    batch_size = 100  # Adjust this number based on your needs
+    count_of_entries_sent_by_ios = len(sorted_request_json)
+    batch_size = 1000  # Adjust this number based on your needs
     count_of_added_records = 0
-    # Process data in batches
+
     for i in range(0, len(sorted_request_json), batch_size):
         batch = sorted_request_json[i:i + batch_size]
         try:
             added_count = add_batch_to_database(batch, user_id)
             count_of_added_records += added_count
-            logger_bp_apple_health.info(f"- adding batch i: {str(i)} -")
-        except IntegrityError as e:
-            logger_bp_apple_health.info(f"IntegrityError details: {e}")
-            # If a batch fails, try adding each entry individually
-            logger_bp_apple_health.info(f"- failed to add batch i: {str(i)} -")
+            logger_bp_apple_health.info(f"- adding batch i: {i} -")
+        except IntegrityError:
+            # Switch to adding records individually
             for entry in batch:
                 try:
                     if add_entry_to_database(entry, user_id):
                         count_of_added_records += 1
-                except IntegrityError as e2:
-                    logger_bp_apple_health.info(f"IntegrityError details (e2): {e2}")
-                    # Skip the remaining data after encountering a duplicate
-                    logger_bp_apple_health.info(f"- failed to add batch i: {str(i)} --> skipping the rest -")
+                except IntegrityError:
+                    # Stop the process as we have reached data already present
+                    logger_bp_apple_health.info(f"- encountered duplicate at batch i: {i}, stopping process -")
                     break
-        except Exception as e:
-            # Catchall exception handling
-            logger_bp_apple_health.error(f"An error occurred while processing batch {i}: {e}")
-            break
+            break  # Exit the batch processing loop
 
-
+    # Final logging and response
     logger_bp_apple_health.info(f"- count_of_added_records: {count_of_added_records} -")
+    count_of_user_apple_health_records = sess.query(AppleHealthKit).filter_by(user_id=user_id).count()
 
-    count_of_user_apple_health_records = sess.query(AppleHealthKit).filter_by(user_id=user_id).all()
-
-    response_dict = {}
-    response_dict['message'] = "Successfully added data!"
-    response_dict['count_of_entries_sent_by_ios'] = "{:,}".format(count_of_entries_sent_by_ios)
-    response_dict['count_of_user_apple_health_records'] = "{:,}".format(len(count_of_user_apple_health_records))
-    response_dict['count_of_added_records'] = "{:,}".format(count_of_added_records)
+    response_dict = {
+        'message': "Successfully added data!",
+        'count_of_entries_sent_by_ios': f"{count_of_entries_sent_by_ios:,}",
+        'count_of_user_apple_health_records': f"{count_of_user_apple_health_records:,}",
+        'count_of_added_records': f"{count_of_added_records:,}"
+    }
     logger_bp_apple_health.info(f"- response_dict: {response_dict} -")
     return response_dict
 
-
 def add_batch_to_database(batch, user_id):
-    new_entries = []
-    for entry in batch:
-        new_entry = AppleHealthKit(
+    logger_bp_apple_health.info(f"- add_batch_to_database length of batch: {len(batch)} -")
+    new_entries = [AppleHealthKit(
                 user_id=user_id,
                 sampleType=entry.get('sampleType'),
                 startDate = entry.get('startDate'),
@@ -111,11 +95,10 @@ def add_batch_to_database(batch, user_id):
                 device = entry.get('device'),
                 UUID = entry.get('UUID'),
                 quantity = entry.get('quantity'),
-                value = entry.get('value'))
-        new_entries.append(new_entry)
+                value = entry.get('value')) for entry in batch]  # Construct AppleHealthKit objects
     sess.bulk_save_objects(new_entries)
     sess.commit()
-    return len(new_entries)  # Return the count of added records
+    return len(new_entries)
 
 def add_entry_to_database(entry, user_id):
     new_entry = AppleHealthKit(
@@ -134,4 +117,6 @@ def add_entry_to_database(entry, user_id):
     )
     sess.add(new_entry)
     sess.commit()
-    return True  # Return True to indicate one record was added
+    return True
+
+
