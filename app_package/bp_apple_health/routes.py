@@ -16,6 +16,7 @@ import requests
 from sqlalchemy import and_
 from sqlalchemy.exc import IntegrityError
 from app_package.bp_apple_health.utils import add_apple_health_to_database
+import subprocess
 
 
 
@@ -91,7 +92,13 @@ def receive_apple_health_data(current_user):
     
     logger_bp_apple_health.info(f"- successfully saved apple health data in: {json_data_path_and_name} -")
 
-    response_dict = add_apple_health_to_database(current_user.id, apple_health_data_request_json_file_name)
+
+    if len(request_json)< 20000:
+        response_dict = add_apple_health_to_database(current_user.id, apple_health_data_request_json_file_name)
+    else:
+        # send email
+        path_sub = os.path.join(current_app.config.get('APPLE_SERVICE_ROOT'), 'add_apple_health_to_database.py')
+        subprocess.Popen(['python', path_sub,str(user_id),apple_health_data_request_json_file_name ])
 
     return jsonify(response_dict)
 
