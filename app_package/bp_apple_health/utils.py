@@ -55,32 +55,34 @@ def add_apple_health_to_database(user_id,apple_health_list_of_dictionary_file_na
     sorted_request_json = sorted(apple_health_list_of_dictionary_records, key=lambda x: x.get('startDate'))
 
     # Define batch size
-    batch_size = 100  # Adjust this number based on your needs
+    batch_size = 1000  # Adjust this number based on your needs
     count_of_added_records = 0
     # Process data in batches
     for i in range(0, len(sorted_request_json), batch_size):
         batch = sorted_request_json[i:i + batch_size]
-        try:
-            added_count = add_batch_to_database(batch, user_id)
-            count_of_added_records += added_count
-            logger_bp_apple_health.info(f"- adding batch i: {str(i)} -")
-        except IntegrityError as e:
-            logger_bp_apple_health.info(f"IntegrityError details: {e}")
-            # If a batch fails, try adding each entry individually
-            logger_bp_apple_health.info(f"- failed to add batch i: {str(i)} -")
-            for entry in batch:
-                try:
-                    if add_entry_to_database(entry, user_id):
-                        count_of_added_records += 1
-                except IntegrityError as e2:
-                    logger_bp_apple_health.info(f"IntegrityError details (e2): {e2}")
-                    # Skip the remaining data after encountering a duplicate
-                    logger_bp_apple_health.info(f"- failed to add batch i: {str(i)} --> skipping the rest -")
-                    break
-        except Exception as e:
-            # Catchall exception handling
-            logger_bp_apple_health.error(f"An error occurred while processing batch {i}: {e}")
-            break
+        # try:
+        added_count = add_batch_to_database(batch, user_id)
+        count_of_added_records += added_count
+        logger_bp_apple_health.info(f"- adding batch i: {str(i)} -")
+        
+        # except IntegrityError as e:
+        #     logger_bp_apple_health.info(f"IntegrityError details: {e}")
+        #     # If a batch fails, try adding each entry individually
+        #     logger_bp_apple_health.info(f"- failed to add batch i: {str(i)} -")
+        #     for entry in batch:
+        #         try:
+        #             logger_bp_apple_health.info(f"- failed to add batch i: {str(i)} -")
+        #             if add_entry_to_database(entry, user_id):
+        #                 count_of_added_records += 1
+        #         except IntegrityError as e2:
+        #             logger_bp_apple_health.info(f"IntegrityError details (e2): {e2}")
+        #             # Skip the remaining data after encountering a duplicate
+        #             logger_bp_apple_health.info(f"- failed to add batch i: {str(i)} --> skipping the rest -")
+        #             break
+        # except Exception as e:
+        #     # Catchall exception handling
+        #     logger_bp_apple_health.error(f"An error occurred while processing batch {i}: {e}")
+        #     break
 
 
     logger_bp_apple_health.info(f"- count_of_added_records: {count_of_added_records} -")
@@ -97,6 +99,7 @@ def add_apple_health_to_database(user_id,apple_health_list_of_dictionary_file_na
 
 
 def add_batch_to_database(batch, user_id):
+    logger_bp_apple_health.info(f"- add_batch_to_database length of batch: {len(batch)} -")
     new_entries = []
     for entry in batch:
         new_entry = AppleHealthKit(
