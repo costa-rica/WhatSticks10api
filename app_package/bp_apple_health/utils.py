@@ -64,14 +64,16 @@ def add_apple_health_to_database(user_id,apple_health_list_of_dictionary_file_na
             added_count = add_batch_to_database(batch, user_id)
             count_of_added_records += added_count
             logger_bp_apple_health.info(f"- adding batch i: {str(i)} -")
-        except IntegrityError:
+        except IntegrityError as e:
+            logger_bp_apple_health.info(f"IntegrityError details: {e}")
             # If a batch fails, try adding each entry individually
             logger_bp_apple_health.info(f"- failed to add batch i: {str(i)} -")
             for entry in batch:
                 try:
                     if add_entry_to_database(entry, user_id):
                         count_of_added_records += 1
-                except IntegrityError:
+                except IntegrityError as e2:
+                    logger_bp_apple_health.info(f"IntegrityError details (e2): {e2}")
                     # Skip the remaining data after encountering a duplicate
                     logger_bp_apple_health.info(f"- failed to add batch i: {str(i)} --> skipping the rest -")
                     break
@@ -83,7 +85,7 @@ def add_apple_health_to_database(user_id,apple_health_list_of_dictionary_file_na
 
     logger_bp_apple_health.info(f"- count_of_added_records: {count_of_added_records} -")
 
-    count_of_user_apple_health_records = sess.query(AppleHealthKit).filter_by(user_id=current_user.id).all()
+    count_of_user_apple_health_records = sess.query(AppleHealthKit).filter_by(user_id=user_id).all()
 
     response_dict = {}
     response_dict['message'] = response_message
