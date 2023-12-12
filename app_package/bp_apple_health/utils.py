@@ -49,34 +49,23 @@ def add_apple_health_to_database(user_id, apple_health_list_of_dictionary_file_n
     with open(json_data_path_and_name, 'r') as file:
         apple_health_list_of_dictionary_records = json.load(file)
         # sorted_request_json = sorted(apple_health_list_of_dictionary_records, key=lambda x: x.get('startDate'))
-        sorted_request_json = sorted(apple_health_list_of_dictionary_records, key=lambda x: parse_date(x.get('startDate')))
-
-    count_of_entries_sent_by_ios = len(sorted_request_json)
-    batch_size = 1000  # Adjust this number based on your needs
+    
+    sorted_request_json = sorted(apple_health_list_of_dictionary_records, key=lambda x: parse_date(x.get('startDate')))
     count_of_added_records = 0
-
-    for i in range(0, len(sorted_request_json), batch_size):
-        batch = sorted_request_json[i:i + batch_size]
+    for i in range(0, len(sorted_request_json)):
+        # batch = sorted_request_json[i:i + batch_size]
         try:
-            sess.begin()  # Start a new transaction
-            added_count = add_batch_to_database(batch, user_id)
-            count_of_added_records += added_count
-            sess.commit()  # Commit the transaction if successful
-            logger_bp_apple_health.info(f"- adding batch i: {i} -")
+            if add_entry_to_database(sorted_request_json[i], user_id):
+                count_of_added_records += 1
+                sess.commit()  # Commit the transaction for the individual entry
+            logger_apple.info(f"- adding i: {count_of_added_records} -")
         except IntegrityError as e:
             sess.rollback()  # Rollback the transaction in case of an IntegrityError
-            logger_bp_apple_health.error(f"IntegrityError encountered in batch: {e}")
-            try:
-                for entry in batch:
-                    sess.begin()  # Start a new transaction for each entry
-                    if add_entry_to_database(entry, user_id):
-                        count_of_added_records += 1
-                    sess.commit()  # Commit the transaction for the individual entry
-            except IntegrityError as e2:
-                sess.rollback()  # Rollback if a duplicate is encountered
-                logger_bp_apple_health.error(f"IntegrityError encountered on individual entry: {e2}")
-                break  # Stop processing as we have reached already present data
-            break  # Stop processing further batches
+            logger_apple.info(f"IntegrityError encountered in batch: {e}")
+            if check_all_bool:
+                continue
+            else:
+                break
 
     # Final logging and response
     logger_bp_apple_health.info(f"- count_of_added_records: {count_of_added_records} -")
