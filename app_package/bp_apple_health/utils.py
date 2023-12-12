@@ -88,7 +88,7 @@ def add_apple_health_to_database(user_id,apple_health_list_of_dictionary_file_na
     count_of_user_apple_health_records = sess.query(AppleHealthKit).filter_by(user_id=user_id).all()
 
     response_dict = {}
-    response_dict['message'] = response_message
+    response_dict['message'] = "Successfully added data!"
     response_dict['count_of_entries_sent_by_ios'] = "{:,}".format(count_of_entries_sent_by_ios)
     response_dict['count_of_user_apple_health_records'] = "{:,}".format(len(count_of_user_apple_health_records))
     response_dict['count_of_added_records'] = "{:,}".format(count_of_added_records)
