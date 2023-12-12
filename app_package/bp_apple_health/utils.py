@@ -24,7 +24,7 @@ formatter_terminal = logging.Formatter('%(asctime)s:%(filename)s:%(name)s:%(mess
 logger_bp_apple_health = logging.getLogger(__name__)
 logger_bp_apple_health.setLevel(logging.DEBUG)
 
-file_handler = RotatingFileHandler(os.path.join(os.environ.get('API_ROOT'),'logs','oura.log'), mode='a', maxBytes=5*1024*1024,backupCount=2)
+file_handler = RotatingFileHandler(os.path.join(os.environ.get('API_ROOT'),'logs','apple_health.log'), mode='a', maxBytes=5*1024*1024,backupCount=2)
 file_handler.setFormatter(formatter)
 
 stream_handler = logging.StreamHandler()
@@ -33,12 +33,13 @@ stream_handler.setFormatter(formatter_terminal)
 logger_bp_apple_health.addHandler(file_handler)
 logger_bp_apple_health.addHandler(stream_handler)
 
-bp_apple_health = Blueprint('bp_apple_health', __name__)
-logger_bp_apple_health.info(f'- WhatSticks10 API users Bluprints initialized')
+# bp_apple_health = Blueprint('bp_apple_health', __name__)
+# logger_bp_apple_health.info(f'- WhatSticks10 API users Bluprints initialized')
 
 
 def add_apple_health_to_database(user_id,apple_health_list_of_dictionary_file_name):
     logger_bp_apple_health.info(f"- accessed  bp_apple_health/utils.py add_apple_health_to_database() -")
+    logger_bp_apple_health.info(f"- accessed  New NR addition 12/12/2023 10:34am -")
 
     json_data_path_and_name = os.path.join(current_app.config.get('APPLE_HEALTH_DIR'),apple_health_list_of_dictionary_file_name)
     with open(json_data_path_and_name, 'r') as file:
