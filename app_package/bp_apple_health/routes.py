@@ -98,7 +98,10 @@ def receive_apple_health_data(current_user):
     else:
         # send email
         path_sub = os.path.join(current_app.config.get('APPLE_SERVICE_ROOT'), 'apple_health_service.py')
-        subprocess.Popen(['python', path_sub,str(current_user.id),apple_health_data_request_json_file_name ])
+        # subprocess.Popen(['python', path_sub, str(current_user.id), apple_health_data_request_json_file_name])
+        process = subprocess.Popen(['python', path_sub, str(current_user.id), apple_health_data_request_json_file_name])
+        # print("PID:", process.pid)
+        logger_bp_apple_health.info(f"---> successfully started subprocess PID:: {process.pid} -")
 
     return jsonify(response_dict)
 
