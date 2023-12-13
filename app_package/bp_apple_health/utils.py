@@ -50,7 +50,7 @@ def add_apple_health_to_database(user_id, apple_health_list_of_dictionary_file_n
         apple_health_list_of_dictionary_records = json.load(file)
         # sorted_request_json = sorted(apple_health_list_of_dictionary_records, key=lambda x: x.get('startDate'))
     count_of_entries_sent_by_ios = len(apple_health_list_of_dictionary_records)
-    sorted_request_json = sorted(apple_health_list_of_dictionary_records, key=lambda x: parse_date(x.get('startDate')))
+    sorted_request_json = sorted(apple_health_list_of_dictionary_records, key=lambda x: parse_date(x.get('startDate')), reverse=True)
     count_of_added_records = 0
     logger_bp_apple_health.info(f"First record in sorted_request_json (sorted_request_json[0]) : {sorted_request_json[0].get('startDate')}")
     logger_bp_apple_health.info(f"Last record in sorted_request_json (sorted_request_json[-1]) : {sorted_request_json[-1].get('startDate')}")
