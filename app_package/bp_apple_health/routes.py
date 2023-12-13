@@ -18,8 +18,6 @@ from sqlalchemy.exc import IntegrityError
 from app_package.bp_apple_health.utils import add_apple_health_to_database
 import subprocess
 
-
-
 formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
 formatter_terminal = logging.Formatter('%(asctime)s:%(filename)s:%(name)s:%(message)s')
 
@@ -37,8 +35,6 @@ logger_bp_apple_health.addHandler(stream_handler)
 
 bp_apple_health = Blueprint('bp_apple_health', __name__)
 logger_bp_apple_health.info(f'- WhatSticks10 API users Bluprints initialized')
-
-
 
 @bp_apple_health.route('/delete_apple_health_for_user', methods=['POST'])
 @token_required
@@ -62,7 +58,6 @@ def delete_apple_health_for_user(current_user):
 
     logger_bp_apple_health.info(f"- response_dict: {response_dict} -")
     return jsonify(response_dict)
-
 
 
 @bp_apple_health.route('/receive_apple_health_data', methods=['POST'])
@@ -119,45 +114,4 @@ def receive_apple_health_data(current_user):
         response_dict = add_apple_health_to_database(current_user.id, apple_health_data_request_json_file_name)
 
     return jsonify(response_dict)
-
-
-# def add_batch_to_database(batch, current_user):
-#     new_entries = []
-#     for entry in batch:
-#         new_entry = AppleHealthKit(
-#                 user_id=current_user.id,
-#                 sampleType=entry.get('sampleType'),
-#                 startDate = entry.get('startDate'),
-#                 endDate = entry.get('endDate'),
-#                 metadataAppleHealth = entry.get('metadata'),
-#                 sourceName = entry.get('sourceName'),
-#                 sourceVersion = entry.get('sourceVersion'),
-#                 sourceProductType = entry.get('sourceProductType'),
-#                 device = entry.get('device'),
-#                 UUID = entry.get('UUID'),
-#                 quantity = entry.get('quantity'),
-#                 value = entry.get('value'))
-#         new_entries.append(new_entry)
-#     sess.bulk_save_objects(new_entries)
-#     sess.commit()
-#     return len(new_entries)  # Return the count of added records
-
-# def add_entry_to_database(entry, current_user):
-#     new_entry = AppleHealthKit(
-#                 user_id=current_user.id,
-#                 sampleType=entry.get('sampleType'),
-#                 startDate = entry.get('startDate'),
-#                 endDate = entry.get('endDate'),
-#                 metadataAppleHealth = entry.get('metadata'),
-#                 sourceName = entry.get('sourceName'),
-#                 sourceVersion = entry.get('sourceVersion'),
-#                 sourceProductType = entry.get('sourceProductType'),
-#                 device = entry.get('device'),
-#                 UUID = entry.get('UUID'),
-#                 quantity = entry.get('quantity'),
-#                 value = entry.get('value')
-#     )
-#     sess.add(new_entry)
-#     sess.commit()
-#     return True  # Return True to indicate one record was added
 
