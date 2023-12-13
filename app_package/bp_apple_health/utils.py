@@ -58,10 +58,10 @@ def add_apple_health_to_database(user_id, apple_health_list_of_dictionary_file_n
             if add_entry_to_database(sorted_request_json[i], user_id):
                 count_of_added_records += 1
                 sess.commit()  # Commit the transaction for the individual entry
-            logger_apple.info(f"- adding i: {count_of_added_records} -")
+            logger_bp_apple_health.info(f"- adding i: {count_of_added_records} -")
         except IntegrityError as e:
             sess.rollback()  # Rollback the transaction in case of an IntegrityError
-            logger_apple.info(f"IntegrityError encountered in batch: {e}")
+            logger_bp_apple_health.info(f"IntegrityError encountered in batch: {e}")
             if check_all_bool:
                 continue
             else:
