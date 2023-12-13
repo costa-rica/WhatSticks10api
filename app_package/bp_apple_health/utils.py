@@ -32,7 +32,6 @@ logger_bp_apple_health.addHandler(file_handler)
 logger_bp_apple_health.addHandler(stream_handler)
 
 bp_apple_health = Blueprint('bp_apple_health', __name__)
-logger_bp_apple_health.info(f'- WhatSticks10 API users Bluprints initialized')
 
 
 def add_apple_health_to_database(user_id, apple_json_data_filename, check_all_bool=False):
@@ -95,6 +94,16 @@ def add_apple_health_to_database(user_id, apple_json_data_filename, check_all_bo
     count_of_user_apple_health_records = sess.query(AppleHealthKit).filter_by(user_id=user_id).count()
     logger_bp_apple_health.info(f"- count of records in db: {count_of_user_apple_health_records}")
     logger_bp_apple_health.info(f"--- add_apple_health_to_database COMPLETE ---")
+    
+    response_dict = {
+        'message': "Successfully added data!",
+        'count_of_entries_sent_by_ios': f"{len(df_new_user_data)}",
+        'count_of_user_apple_health_records': f"{count_of_user_apple_health_records:,}",
+        'count_of_added_records': f"{count_of_records_added_to_db:,}"
+    }
+    logger_bp_apple_health.info(f"- response_dict: {response_dict} -")
+    return response_dict
+
 
 
 def get_existing_user_data(user_id):
