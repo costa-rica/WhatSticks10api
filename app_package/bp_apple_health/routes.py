@@ -80,8 +80,8 @@ def receive_apple_health_data(current_user):
         logger_bp_apple_health.info(f"- response_dict: {response_dict} -")
         # return jsonify({"status": "httpBody data recieved not json not parse-able."})
         return jsonify(response_dict)
-    
-    logger_bp_apple_health.info(f"- Count of Apple Health Data received: {len(request_json)} -")
+    count_of_entries_sent_by_ios = len(request_json)
+    logger_bp_apple_health.info(f"- Count of Apple Health Data received: {count_of_entries_sent_by_ios} -")
     logger_bp_apple_health.info(f"- request_json type: {type(request_json)} -")
     timestamp = datetime.now().strftime('%Y%m%d-%H%M')
     apple_health_data_request_json_file_name = f"AppleHealth-user_id{current_user.id}-{timestamp}.json"
@@ -92,10 +92,22 @@ def receive_apple_health_data(current_user):
     
     logger_bp_apple_health.info(f"- successfully saved apple health data in: {json_data_path_and_name} -")
 
-
-    if len(request_json)< 4000:
+    
+    if count_of_entries_sent_by_ios == 0:
+        response_dict = {
+            'message': "No data sent",
+            'count_of_entries_sent_by_ios': f"{count_of_entries_sent_by_ios:,}",
+            'count_of_user_apple_health_records': "0",
+            'count_of_added_records': f"{count_of_records_added_to_db:,}"
+        }
+        return jsonify(response_dict)
+    elif count_of_entries_sent_by_ios < 4000:
         response_dict = add_apple_health_to_database(current_user.id, apple_health_data_request_json_file_name)
     else:
+        response_dict = {
+            'message': "No data sent",
+            'alertMessage':f"Apple Health Data contains {count_of_entries_sent_by_ios:,} records. /nYou will receive an email when all your data is added to the database."
+        }
         # send email
         path_sub = os.path.join(current_app.config.get('APPLE_SERVICE_ROOT'), 'apple_health_service.py')
         # subprocess.Popen(['python', path_sub, str(current_user.id), apple_health_data_request_json_file_name])

@@ -97,7 +97,7 @@ def add_apple_health_to_database(user_id, apple_json_data_filename, check_all_bo
     
     response_dict = {
         'message': "Successfully added data!",
-        'count_of_entries_sent_by_ios': f"{len(df_new_user_data)}",
+        'count_of_entries_sent_by_ios': f"{len(df_new_user_data):,}",
         'count_of_user_apple_health_records': f"{count_of_user_apple_health_records:,}",
         'count_of_added_records': f"{count_of_records_added_to_db:,}"
     }
