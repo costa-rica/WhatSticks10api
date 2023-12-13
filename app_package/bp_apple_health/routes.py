@@ -15,7 +15,8 @@ import requests
 # from app_package.bp_apple_health.utils import add_oura_sleep_to_OuraSleepDescriptions
 from sqlalchemy import and_
 from sqlalchemy.exc import IntegrityError
-from app_package.bp_apple_health.utils import add_apple_health_to_database
+from app_package.bp_apple_health.utils import add_apple_health_to_database, \
+    send_confirm_email
 import subprocess
 
 formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
@@ -115,3 +116,23 @@ def receive_apple_health_data(current_user):
 
     return jsonify(response_dict)
 
+
+@bp_apple_health.route('/apple_health_subprocess_complete', methods=['POST'])
+@token_required
+def apple_health_subprocess_complete(current_user):
+    logger_bp_apple_health.info(f"- accessed apple_health_subprocess_complete -")
+    ws_api_password = request.json.get('WS_API_PASSWORD')
+    logger_bp_apple_health.info(f"All Headers: {request.headers}")
+
+
+    if current_app.config.get('WS_API_PASSWORD') == ws_api_password:
+        logger_bp_apple_health.info(f"- sender password verified -")
+
+
+        count_of_records_added_to_db = request.json.get('count_of_records_added_to_db')
+        user_id = request.json.get('count_of_records_added_to_db')
+        user_obj = sess.get(Users,int(user_id))
+        
+
+        send_confirm_email(user_obj.email, count_of_records_added_to_db)
+        logger_bp_apple_health.info(f"- sender password verified -")
