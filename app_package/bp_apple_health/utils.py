@@ -41,7 +41,7 @@ def parse_date(date_str):
     return datetime.strptime(date_str.split(' ')[0], '%Y-%m-%d')
 
 
-def add_apple_health_to_database(user_id, apple_health_list_of_dictionary_file_name):
+def add_apple_health_to_database(user_id, apple_health_list_of_dictionary_file_name,check_all_bool=False):
     logger_bp_apple_health.info("- accessed bp_apple_health/utils.py add_apple_health_to_database -")
 
     # Load and sort data
