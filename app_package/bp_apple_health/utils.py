@@ -49,7 +49,7 @@ def add_apple_health_to_database(user_id, apple_health_list_of_dictionary_file_n
     with open(json_data_path_and_name, 'r') as file:
         apple_health_list_of_dictionary_records = json.load(file)
         # sorted_request_json = sorted(apple_health_list_of_dictionary_records, key=lambda x: x.get('startDate'))
-    
+    count_of_entries_sent_by_ios = len(apple_health_list_of_dictionary_records)
     sorted_request_json = sorted(apple_health_list_of_dictionary_records, key=lambda x: parse_date(x.get('startDate')))
     count_of_added_records = 0
     for i in range(0, len(sorted_request_json)):
@@ -58,13 +58,14 @@ def add_apple_health_to_database(user_id, apple_health_list_of_dictionary_file_n
             if add_entry_to_database(sorted_request_json[i], user_id):
                 count_of_added_records += 1
                 sess.commit()  # Commit the transaction for the individual entry
-            logger_bp_apple_health.info(f"- adding i: {count_of_added_records} -")
+            # logger_bp_apple_health.info(f"- adding i: {count_of_added_records} -")
         except IntegrityError as e:
             sess.rollback()  # Rollback the transaction in case of an IntegrityError
             logger_bp_apple_health.info(f"IntegrityError encountered in batch: {e}")
             if check_all_bool:
                 continue
             else:
+                logger_bp_apple_health.info(f"Ended adding data after entry (i): {i}")
                 break
 
     # Final logging and response
