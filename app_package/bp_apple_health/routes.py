@@ -119,7 +119,7 @@ def receive_apple_health_data(current_user):
 
 @bp_apple_health.route('/apple_health_subprocess_complete', methods=['POST'])
 # @token_required
-def apple_health_subprocess_complete(current_user):
+def apple_health_subprocess_complete():
     logger_bp_apple_health.info(f"- accessed apple_health_subprocess_complete -")
     ws_api_password = request.json.get('WS_API_PASSWORD')
     logger_bp_apple_health.info(f"All Headers: {request.headers}")
