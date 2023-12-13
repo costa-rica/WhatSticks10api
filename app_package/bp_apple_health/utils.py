@@ -124,12 +124,12 @@ def get_existing_user_data(user_id):
 
 def send_confirm_email(email, count_of_records_added_to_db):
     if os.environ.get('FLASK_CONFIG_TYPE') != 'local':
-        logger_bp_users.info(f"-- sending email to {email} --")
+        logger_bp_apple_health.info(f"-- sending email to {email} --")
         msg = Message('Apple Health Data succesfully added!',
             sender=current_app.config.get('MAIL_USERNAME'),
             recipients=[email])
         msg.body = f'You have succesfully added {count_of_records_added_to_db} records.'
         mail.send(msg)
-        logger_bp_users.info(f"-- email sent --")
+        logger_bp_apple_health.info(f"-- email sent --")
     else :
-        logger_bp_users.info(f"-- Non prod mode so no email sent --")
+        logger_bp_apple_health.info(f"-- Non prod mode so no email sent --")
