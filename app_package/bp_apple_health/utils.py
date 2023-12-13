@@ -14,6 +14,8 @@ from app_package.utilsDecorators import token_required
 import requests
 from sqlalchemy.exc import SQLAlchemyError
 import pandas as pd
+from flask_mail import Message
+from app_package import mail
 
 
 formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
