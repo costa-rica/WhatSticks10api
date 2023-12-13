@@ -11,7 +11,7 @@ from logging.handlers import RotatingFileHandler
 import json
 import socket
 from app_package.utilsDecorators import token_required
-from app_package.utils import send_confirm_email
+from app_package.bp_users.utils import send_confirm_email
 
 
 formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
