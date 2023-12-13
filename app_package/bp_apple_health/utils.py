@@ -45,7 +45,7 @@ def add_apple_health_to_database(user_id, apple_json_data_filename, check_all_bo
     logger_bp_apple_health.info(f"- ------------------- -")
 
     # ws_data_folder ="/Users/nick/Documents/_testData/_What_Sticks"
-    with open(os.path.join(config.APPLE_HEALTH_DIR, apple_json_data_filename), 'r') as new_user_data_path_and_filename:
+    with open(os.path.join(current_app.config.get('APPLE_HEALTH_DIR'), apple_json_data_filename), 'r') as new_user_data_path_and_filename:
         # apple_json_data = json.load(new_user_data_path_and_filename)
         df_new_user_data = pd.read_json(new_user_data_path_and_filename)
 
