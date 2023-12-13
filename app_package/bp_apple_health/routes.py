@@ -94,6 +94,7 @@ def receive_apple_health_data(current_user):
 
     
     if count_of_entries_sent_by_ios == 0:
+        logger_bp_apple_health.info(f"- Not processing count_of_entries_sent_by_ios == 0: -")
         response_dict = {
             'message': "No data sent",
             'count_of_entries_sent_by_ios': f"{count_of_entries_sent_by_ios:,}",
@@ -101,19 +102,21 @@ def receive_apple_health_data(current_user):
             'count_of_added_records': f"{count_of_records_added_to_db:,}"
         }
         return jsonify(response_dict)
-    elif count_of_entries_sent_by_ios < 4000:
-        response_dict = add_apple_health_to_database(current_user.id, apple_health_data_request_json_file_name)
-    else:
+
+    elif count_of_entries_sent_by_ios > 4000:
+        logger_bp_apple_health.info(f"- processing via WSAS, elif count_of_entries_sent_by_ios > 4000:-")
         response_dict = {
             'message': "No data sent",
-            'alertMessage':f"Apple Health Data contains {count_of_entries_sent_by_ios:,} records. /nYou will receive an email when all your data is added to the database."
+            'alertMessage':f"Apple Health Data contains {count_of_entries_sent_by_ios:,} records. \nYou will receive an email when all your data is added to the database."
         }
         # send email
         path_sub = os.path.join(current_app.config.get('APPLE_SERVICE_ROOT'), 'apple_health_service.py')
-        # subprocess.Popen(['python', path_sub, str(current_user.id), apple_health_data_request_json_file_name])
+        # run WSAS subprocess
         process = subprocess.Popen(['python', path_sub, str(current_user.id), apple_health_data_request_json_file_name])
-        # print("PID:", process.pid)
         logger_bp_apple_health.info(f"---> successfully started subprocess PID:: {process.pid} -")
+    else:
+        logger_bp_apple_health.info(f"- processing via API elif count_of_entries_sent_by_ios < 4000:-")
+        response_dict = add_apple_health_to_database(current_user.id, apple_health_data_request_json_file_name)
 
     return jsonify(response_dict)
 
