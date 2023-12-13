@@ -93,7 +93,7 @@ def receive_apple_health_data(current_user):
     logger_bp_apple_health.info(f"- successfully saved apple health data in: {json_data_path_and_name} -")
 
 
-    if len(request_json)< 20000:
+    if len(request_json)< 2000:
         response_dict = add_apple_health_to_database(current_user.id, apple_health_data_request_json_file_name)
     else:
         # send email
