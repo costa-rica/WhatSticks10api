@@ -11,6 +11,7 @@ from logging.handlers import RotatingFileHandler
 import json
 import socket
 from app_package.utilsDecorators import token_required
+from app_package.utils import send_confirm_email
 
 
 formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
@@ -137,6 +138,8 @@ def register():
 
     sess.add(new_user)
     sess.commit()
+
+    send_confirm_email(request_json.get('new_email'))
 
     response_dict = {}
     response_dict["message"] = f"new user created: {request_json.get('new_email')}"
