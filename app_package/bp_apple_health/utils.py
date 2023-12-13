@@ -52,9 +52,12 @@ def add_apple_health_to_database(user_id, apple_health_list_of_dictionary_file_n
     count_of_entries_sent_by_ios = len(apple_health_list_of_dictionary_records)
     sorted_request_json = sorted(apple_health_list_of_dictionary_records, key=lambda x: parse_date(x.get('startDate')))
     count_of_added_records = 0
+    logger_bp_apple_health.info(f"First record in sorted_request_json (sorted_request_json[0]) : {sorted_request_json[0].get('startDate')}")
+    logger_bp_apple_health.info(f"Last record in sorted_request_json (sorted_request_json[-1]) : {sorted_request_json[-1].get('startDate')}")
     for i in range(0, len(sorted_request_json)):
         # batch = sorted_request_json[i:i + batch_size]
         try:
+            logger_bp_apple_health.info(f"Adding : {sorted_request_json[i].get('startDate')}")
             if add_entry_to_database(sorted_request_json[i], user_id):
                 count_of_added_records += 1
                 sess.commit()  # Commit the transaction for the individual entry
