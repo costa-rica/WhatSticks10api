@@ -97,7 +97,7 @@ def receive_apple_health_data(current_user):
         response_dict = add_apple_health_to_database(current_user.id, apple_health_data_request_json_file_name)
     else:
         # send email
-        path_sub = os.path.join(current_app.config.get('APPLE_SERVICE_ROOT'), 'add_apple_health_to_database.py')
+        path_sub = os.path.join(current_app.config.get('APPLE_SERVICE_ROOT'), 'apple_health_service.py')
         subprocess.Popen(['python', path_sub,str(current_user.id),apple_health_data_request_json_file_name ])
 
     return jsonify(response_dict)
