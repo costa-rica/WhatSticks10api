@@ -127,10 +127,11 @@ def apple_health_subprocess_complete():
 
     if current_app.config.get('WS_API_PASSWORD') == ws_api_password:
         logger_bp_apple_health.info(f"- sender password verified -")
+        logger_bp_apple_health.info(f"- request.json: {request.json} -")
 
 
         count_of_records_added_to_db = request.json.get('count_of_records_added_to_db')
-        user_id = request.json.get('count_of_records_added_to_db')
+        user_id = request.json.get('user_id')
         user_obj = sess.get(Users,int(user_id))
         
 
