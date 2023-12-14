@@ -12,6 +12,7 @@ import json
 import socket
 from app_package.utilsDecorators import token_required
 from app_package.bp_users.utils import send_confirm_email
+from ws_analysis import corr_sleep_steps
 
 
 formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
@@ -81,21 +82,6 @@ def login():
                 user_object_for_swift_app['oura_token'] = oura_token_obj.token
 
             user_object_for_swift_app['admin'] = True
-
-            # oura_health_stuct = {}
-            # oura_health_stuct['name']='Oura'
-            # user_oura_sessions = sess.query(OuraSleepDescriptions).filter_by(user_id=user.id).all()
-            # if user_oura_sessions is not None:
-            #     oura_health_stuct['recordCount']="{:,}".format(len(user_oura_sessions))
-            # user_object_for_swift_app['ouraHealthStruct']=oura_health_stuct
-
-            # apple_health_struct = {}
-            # apple_health_struct['name']="Apple Health"
-            # apple_health_records = sess.query(AppleHealthKit).filter_by(user_id=user.id).all()
-            # if apple_health_records is not None:
-            #     apple_health_struct['recordCount']="{:,}".format(len(apple_health_records))
-            # user_object_for_swift_app['appleHealthStruct']=apple_health_struct
-
 
             logger_bp_users.info(f"- user_object_for_swift_app: {user_object_for_swift_app} -")
             return jsonify(user_object_for_swift_app)
@@ -172,21 +158,16 @@ def send_dashboard_health_data_objects(current_user):
     dashboard_health_data_object_apple_health['recordCount']="{:,}".format(len(record_count_apple_health))
     response_list.append(dashboard_health_data_object_apple_health)
 
-
-    # try:
-    #     count_deleted_rows = sess.query(AppleHealthKit).filter_by(user_id = 1).delete()
-    #     sess.commit()
-    #     response_message = f"successfully deleted {count_deleted_rows} records"
-    # except Exception as e:
-    #     session.rollback()
-    #     logger_bp_users.info(f"failed to delete data, error: {e}")
-    #     response_message = f"failed to delete, error {e} "
-    #     # response = jsonify({"error": str(e)})
-    #     return make_response(jsonify({"error":response_message}), 500)
-
-    # response_dict['message'] = response_message
-    # response_dict['count_deleted_rows'] = "{:,}".format(count_deleted_rows)
-    # response_dict['count_of_entries'] = "0"
+    arryDataDict = []
+    corr_sleep_steps = corr_sleep_steps(user_id = current_user.id)
+    if corr_sleep_steps != "insufficient data":
+        logger_bp_users.info(f"- calculated correlation: {corr_sleep_steps}-")
+        dataDict = {}
+        dataDict['Dependent Variable'] = "Daily sleep time in hours"
+        dataDict['Daily Steps'] = f"{corr_sleep_steps}"
+        arryDataDict.append(dataDict)
+    
+        dashboard_health_data_object_apple_health['arryDataDict'] = arryDataDict
 
     logger_bp_users.info(f"- response_list: {response_list} -")
     return jsonify(response_list)
