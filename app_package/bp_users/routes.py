@@ -159,12 +159,12 @@ def send_dashboard_health_data_objects(current_user):
     response_list.append(dashboard_health_data_object_apple_health)
 
     arryDataDict = []
-    corr_sleep_steps = corr_sleep_steps(user_id = current_user.id)
+    corr_sleep_steps_value = corr_sleep_steps(user_id = current_user.id)
     if corr_sleep_steps != "insufficient data":
-        logger_bp_users.info(f"- calculated correlation: {corr_sleep_steps}-")
+        logger_bp_users.info(f"- calculated correlation: {corr_sleep_steps_value}-")
         dataDict = {}
         dataDict['Dependent Variable'] = "Daily sleep time in hours"
-        dataDict['Daily Steps'] = f"{corr_sleep_steps}"
+        dataDict['Daily Steps'] = f"{corr_sleep_steps_value}"
         arryDataDict.append(dataDict)
     
         dashboard_health_data_object_apple_health['arryDataDict'] = arryDataDict
