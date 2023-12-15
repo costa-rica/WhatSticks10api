@@ -193,10 +193,14 @@ def send_dashboard_health_data_objects(current_user):
     
     user_dashboard_json_file_name = f"Dashboard-user_id{current_user.id}.json"
     json_data_path_and_name = os.path.join(current_app.config.get('DASHBOARD_FILES_DIR'), user_dashboard_json_file_name)
-    with open(json_data_path_and_name,'r') as dashboard_json_file:
-        arryDashHealthDataObj = json.load(dashboard_json_file)
+    try:
+        with open(json_data_path_and_name,'r') as dashboard_json_file:
+            arryDashHealthDataObj = json.load(dashboard_json_file)
     
-    logger_bp_users.info(f"- Returning arryDashHealthDataObj: {arryDashHealthDataObj} -")
-    return jsonify(arryDashHealthDataObj)
+        logger_bp_users.info(f"- Returning arryDashHealthDataObj: {arryDashHealthDataObj} -")
+        return jsonify(arryDashHealthDataObj)
+    except:
+        logger_bp_users.info(f"- Returning arryDashHealthDataObj: {arryDashHealthDataObj} -")
+        return jsonify(arryDashHealthDataObj)
 
 
