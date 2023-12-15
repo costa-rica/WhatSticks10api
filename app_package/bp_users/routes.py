@@ -39,7 +39,7 @@ salt = bcrypt.gensalt()
 def are_we_working():
     logger_bp_users.info(f"are_we_working endpoint pinged")
 
-    logger_bp_users.info(f"{current_app.config.get('WS_API_PASSWORD')}")
+    # logger_bp_users.info(f"{current_app.config.get('WS_API_PASSWORD')}")
 
     hostname = socket.gethostname()
 
@@ -137,10 +137,10 @@ def register():
 
         
 
-@bp_users.route('/send_dashboard_health_data_objects', methods=['POST'])
+@bp_users.route('/send_login_health_data_objects', methods=['POST'])
 @token_required
-def send_dashboard_health_data_objects(current_user):
-    logger_bp_users.info(f"- accessed  send_dashboard_health_data_objects endpoint-")
+def send_login_health_data_objects(current_user):
+    logger_bp_users.info(f"- accessed  send_login_health_data_objects endpoint-")
     
     # try:
     #     request_json = request.json
@@ -184,5 +184,19 @@ def send_dashboard_health_data_objects(current_user):
     logger_bp_users.info(f"- response_list: {response_list} -")
     return jsonify(response_list)
 
+
+
+@bp_users.route('/send_dashboard_health_data_objects', methods=['POST'])
+@token_required
+def send_dashboard_health_data_objects(current_user):
+    logger_bp_users.info(f"- accessed  send_dashboard_health_data_objects endpoint-")
+    
+    user_dashboard_json_file_name = f"Dashboard-user_id{current_user.id}.json"
+    json_data_path_and_name = os.path.join(current_app.config.get('DASHBOARD_FILES_DIR'), user_dashboard_json_file_name)
+    with open(json_data_path_and_name,'r') as dashboard_json_file:
+        arryDashHealthDataObj = json.load(dashboard_json_file)
+    
+    logger_bp_users.info(f"- Returning arryDashHealthDataObj: {arryDashHealthDataObj} -")
+    return jsonify(arryDashHealthDataObj)
 
 
