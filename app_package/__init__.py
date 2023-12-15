@@ -66,9 +66,12 @@ def create_app(config_for_flask = config):
     # config.APPLE_HEALTH_DIR directory:
     if not os.path.exists(config_for_flask.APPLE_HEALTH_DIR):
         os.makedirs(config_for_flask.APPLE_HEALTH_DIR)
-    # config.DF_FILES_DIR directory:
-    if not os.path.exists(config_for_flask.DF_FILES_DIR):
-        os.makedirs(config_for_flask.DF_FILES_DIR)
+    # # config.DF_FILES_DIR directory:
+    # if not os.path.exists(config_for_flask.DF_FILES_DIR):
+    #     os.makedirs(config_for_flask.DF_FILES_DIR)
+    # config.DASHBOARD_FILES_DIR directory:
+    if not os.path.exists(config_for_flask.DASHBOARD_FILES_DIR):
+        os.makedirs(config_for_flask.DASHBOARD_FILES_DIR)
     # config.DIR_DB_BLOG directory:
     if not os.path.exists(config_for_flask.DIR_DB_BLOG):
         os.makedirs(config_for_flask.DIR_DB_BLOG)

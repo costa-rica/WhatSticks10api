@@ -108,11 +108,16 @@ def receive_apple_health_data(current_user):
         # send email
         path_sub = os.path.join(current_app.config.get('APPLE_SERVICE_ROOT'), 'apple_health_service.py')
         # run WSAS subprocess
-        process = subprocess.Popen(['python', path_sub, str(current_user.id), apple_health_data_request_json_file_name])
+        process = subprocess.Popen(['python', path_sub, str(current_user.id), apple_health_data_request_json_file_name], 'True', 'True')
         logger_bp_apple_health.info(f"---> successfully started subprocess PID:: {process.pid} -")
+
     else:
         logger_bp_apple_health.info(f"- processing via API elif count_of_entries_sent_by_ios < 4000:-")
         response_dict = add_apple_health_to_database(current_user.id, apple_health_data_request_json_file_name)
+        process = subprocess.Popen(['python', path_sub, str(current_user.id), apple_health_data_request_json_file_name], 'False', 'True')
+        ############################################
+        # subprocess function to make calculations #
+        ############################################
 
     return jsonify(response_dict)
 

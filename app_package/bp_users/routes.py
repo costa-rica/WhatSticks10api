@@ -12,7 +12,7 @@ import json
 import socket
 from app_package.utilsDecorators import token_required
 from app_package.bp_users.utils import send_confirm_email
-from ws_analysis import corr_sleep_steps
+# from ws_analysis import corr_sleep_steps
 
 
 formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
@@ -141,8 +141,19 @@ def register():
 @token_required
 def send_dashboard_health_data_objects(current_user):
     logger_bp_users.info(f"- accessed  send_dashboard_health_data_objects endpoint-")
-    response_list = []
+    
+    # try:
+    #     request_json = request.json
+    #     logger_bp_users.info(f"request_json: {request_json}")
+    # except Exception as e:
+    #     logger_bp_users.info(f"failed to read json, error: {e}")
+    #     response = jsonify({"error": str(e)})
+    #     return make_response(response, 400)
+    
+    
+    # calculation_bool = request_json.get('calculation_bool')
 
+    response_list = []
 
     #get user's oura record count
     dashboard_health_data_object_oura={}
@@ -158,16 +169,17 @@ def send_dashboard_health_data_objects(current_user):
     dashboard_health_data_object_apple_health['recordCount']="{:,}".format(len(record_count_apple_health))
     response_list.append(dashboard_health_data_object_apple_health)
 
-    arryDataDict = []
-    corr_sleep_steps_value = corr_sleep_steps(user_id = current_user.id)
-    if corr_sleep_steps != "insufficient data":
-        logger_bp_users.info(f"- calculated correlation: {corr_sleep_steps_value}-")
-        dataDict = {}
-        dataDict['Dependent Variable'] = "Daily sleep time in hours"
-        dataDict['Daily Steps'] = f"{corr_sleep_steps_value}"
-        arryDataDict.append(dataDict)
-    
-        dashboard_health_data_object_apple_health['arryDataDict'] = arryDataDict
+    # if calculation_bool:
+    #     arryDataDict = []
+    #     corr_sleep_steps_value = corr_sleep_steps(user_id = current_user.id)
+    #     if corr_sleep_steps != "insufficient data":
+    #         logger_bp_users.info(f"- calculated correlation: {corr_sleep_steps_value}-")
+    #         dataDict = {}
+    #         dataDict['Dependent Variable'] = "Daily sleep time in hours"
+    #         dataDict['Daily Steps'] = f"{corr_sleep_steps_value}"
+    #         arryDataDict.append(dataDict)
+        
+    #         dashboard_health_data_object_apple_health['arryDataDict'] = arryDataDict
 
     logger_bp_users.info(f"- response_list: {response_list} -")
     return jsonify(response_list)
