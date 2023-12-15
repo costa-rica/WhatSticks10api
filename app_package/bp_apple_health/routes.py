@@ -89,7 +89,7 @@ def receive_apple_health_data(current_user):
     logger_bp_apple_health.info(f"- successfully saved apple health data in: {json_data_path_and_name} -")
 
     # Filename and path to subproces (WSAS)
-    path_sub = os.path.join(current_app.config.get('APPLE_SERVICE_ROOT'), 'what_sticks_health_service.py')
+    path_sub = os.path.join(current_app.config.get('APPLE_SERVICE_ROOT'), 'apple_health_service.py')
 
     if count_of_entries_sent_by_ios == 0:
         logger_bp_apple_health.info(f"- Not processing count_of_entries_sent_by_ios == 0: -")
