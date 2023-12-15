@@ -140,4 +140,6 @@ def apple_health_subprocess_complete():
         
 
         send_confirm_email(user_obj.email, count_of_records_added_to_db)
-        logger_bp_apple_health.info(f"- sender password verified -")
+        logger_bp_apple_health.info(f"- WSAPI finished sending email to user informing data added to db -")
+    
+    return jsonify({"message":"WSAPI sent email to user that data added to db."})
