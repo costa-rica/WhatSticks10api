@@ -180,15 +180,18 @@ def send_dashboard_table_objects(current_user):
             dashboard_table_object = json.load(dashboard_json_file)
             response_list.append(dashboard_table_object)
     
-        logger_bp_users.info(f"- Returning arryDashHealthDataObj: {arryDashHealthDataObj} -")
+        logger_bp_users.info(f"- Returning dashboard_table_object list: {response_list} -")
+        logger_bp_users.info(f"- END send_dashboard_table_objects -")
         return jsonify(response_list)
     except FileNotFoundError:
         error_message = f"File not found: {json_data_path_and_name}"
         logger_bp_users.error(error_message)
+        logger_bp_users.info(f"- END send_dashboard_table_objects -")
         return jsonify({"error": error_message}), 404
 
     except Exception as e:
         logger_bp_users.error(f"An error occurred: {e}")
+        logger_bp_users.info(f"- END send_dashboard_table_objects -")
         return jsonify({"error": "An unexpected error occurred"}), 500
 
 
