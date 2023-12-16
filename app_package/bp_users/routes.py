@@ -173,7 +173,7 @@ def send_dashboard_table_objects(current_user):
     dashboard_table_object = {}
 
     # user_dashboard_json_file_name = f"Dashboard-user_id{current_user.id}.json"
-    user_sleep_dash_json_file_name = f"dt_sleep01_{current_user.id:04}"
+    user_sleep_dash_json_file_name = f"dt_sleep01_{current_user.id:04}.json"
     json_data_path_and_name = os.path.join(current_app.config.get('DASHBOARD_FILES_DIR'), user_sleep_dash_json_file_name)
     try:
         with open(json_data_path_and_name,'r') as dashboard_json_file:
