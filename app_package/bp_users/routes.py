@@ -136,71 +136,59 @@ def register():
     return jsonify(response_dict)
 
         
-
-@bp_users.route('/send_login_health_data_objects', methods=['POST'])
+# this get's sent at login
+@bp_users.route('/send_data_source_objects', methods=['POST'])
 @token_required
 def send_login_health_data_objects(current_user):
-    logger_bp_users.info(f"- accessed  send_login_health_data_objects endpoint-")
+    logger_bp_users.info(f"- accessed  send_data_source_objects endpoint-")
     
-    # try:
-    #     request_json = request.json
-    #     logger_bp_users.info(f"request_json: {request_json}")
-    # except Exception as e:
-    #     logger_bp_users.info(f"failed to read json, error: {e}")
-    #     response = jsonify({"error": str(e)})
-    #     return make_response(response, 400)
-    
-    
-    # calculation_bool = request_json.get('calculation_bool')
-
     response_list = []
 
     #get user's oura record count
-    dashboard_health_data_object_oura={}
-    dashboard_health_data_object_oura['name']="Oura Ring"
+    # keys to data_source_object_oura must match WSiOS DataSourceObject
+    data_source_object_oura={}
+    data_source_object_oura['name']="Oura Ring"
     record_count_oura = sess.query(OuraSleepDescriptions).filter_by(user_id=current_user.id).all()
-    dashboard_health_data_object_oura['recordCount']="{:,}".format(len(record_count_oura))
-    response_list.append(dashboard_health_data_object_oura)
+    data_source_object_oura['recordCount']="{:,}".format(len(record_count_oura))
+    response_list.append(data_source_object_oura)
 
     #get user's apple health record count
-    dashboard_health_data_object_apple_health={}
-    dashboard_health_data_object_apple_health['name']="Apple Health Data"
+    # keys to data_source_object_apple_health must match WSiOS DataSourceObject
+    data_source_object_apple_health={}
+    data_source_object_apple_health['name']="Apple Health Data"
     record_count_apple_health = sess.query(AppleHealthKit).filter_by(user_id=current_user.id).all()
-    dashboard_health_data_object_apple_health['recordCount']="{:,}".format(len(record_count_apple_health))
-    response_list.append(dashboard_health_data_object_apple_health)
-
-    # if calculation_bool:
-    #     arryDataDict = []
-    #     corr_sleep_steps_value = corr_sleep_steps(user_id = current_user.id)
-    #     if corr_sleep_steps != "insufficient data":
-    #         logger_bp_users.info(f"- calculated correlation: {corr_sleep_steps_value}-")
-    #         dataDict = {}
-    #         dataDict['Dependent Variable'] = "Daily sleep time in hours"
-    #         dataDict['Daily Steps'] = f"{corr_sleep_steps_value}"
-    #         arryDataDict.append(dataDict)
-        
-    #         dashboard_health_data_object_apple_health['arryDataDict'] = arryDataDict
+    data_source_object_apple_health['recordCount']="{:,}".format(len(record_count_apple_health))
+    response_list.append(data_source_object_apple_health)
 
     logger_bp_users.info(f"- response_list: {response_list} -")
     return jsonify(response_list)
 
 
-
-@bp_users.route('/send_dashboard_health_data_objects', methods=['POST'])
+@bp_users.route('/send_dashboard_table_objects', methods=['POST'])
 @token_required
 def send_dashboard_health_data_objects(current_user):
     logger_bp_users.info(f"- accessed  send_dashboard_health_data_objects endpoint-")
     
-    user_dashboard_json_file_name = f"Dashboard-user_id{current_user.id}.json"
-    json_data_path_and_name = os.path.join(current_app.config.get('DASHBOARD_FILES_DIR'), user_dashboard_json_file_name)
+    response_list = []
+    dashboard_table_object = {}
+
+    # user_dashboard_json_file_name = f"Dashboard-user_id{current_user.id}.json"
+    user_sleep_dash_json_file_name = f"dt_sleep01_{user_id:04}"
+    json_data_path_and_name = os.path.join(current_app.config.get('DASHBOARD_FILES_DIR'), user_sleep_dash_json_file_name)
     try:
         with open(json_data_path_and_name,'r') as dashboard_json_file:
-            arryDashHealthDataObj = json.load(dashboard_json_file)
+            dashboard_table_object = json.load(dashboard_json_file)
+            response_list.append(dashboard_table_object)
     
         logger_bp_users.info(f"- Returning arryDashHealthDataObj: {arryDashHealthDataObj} -")
-        return jsonify(arryDashHealthDataObj)
-    except:
-        logger_bp_users.info(f"- Returning arryDashHealthDataObj: {arryDashHealthDataObj} -")
-        return jsonify(arryDashHealthDataObj)
+        return jsonify(response_list)
+    except FileNotFoundError:
+        error_message = f"File not found: {json_data_path_and_name}"
+        logger_bp_users.error(error_message)
+        return jsonify({"error": error_message}), 404
+
+    except Exception as e:
+        logger_bp_users.error(f"An error occurred: {e}")
+        return jsonify({"error": "An unexpected error occurred"}), 500
 
 
