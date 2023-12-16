@@ -139,7 +139,7 @@ def register():
 # this get's sent at login
 @bp_users.route('/send_data_source_objects', methods=['POST'])
 @token_required
-def send_login_health_data_objects(current_user):
+def send_data_source_objects(current_user):
     logger_bp_users.info(f"- accessed  send_data_source_objects endpoint-")
     
     response_list = []
@@ -166,8 +166,8 @@ def send_login_health_data_objects(current_user):
 
 @bp_users.route('/send_dashboard_table_objects', methods=['POST'])
 @token_required
-def send_dashboard_health_data_objects(current_user):
-    logger_bp_users.info(f"- accessed  send_dashboard_health_data_objects endpoint-")
+def send_dashboard_table_objects(current_user):
+    logger_bp_users.info(f"- accessed  send_dashboard_table_objects endpoint-")
     
     response_list = []
     dashboard_table_object = {}
