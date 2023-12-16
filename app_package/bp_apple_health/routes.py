@@ -87,6 +87,8 @@ def receive_apple_health_data(current_user):
         json.dump(request_json, file, indent=4)
     
     logger_bp_apple_health.info(f"- successfully saved apple health data in: {json_data_path_and_name} -")
+    user_id_string = str(current_user.id)
+    logger_bp_apple_health.info(f"- user_id string passed to subprocess: {user_id_string} -")
 
     # Filename and path to subproces (WSAS)
     path_sub = os.path.join(current_app.config.get('APPLE_SERVICE_ROOT'), 'apple_health_service.py')
@@ -109,14 +111,14 @@ def receive_apple_health_data(current_user):
         }
 
         # run WSAS subprocess
-        process = subprocess.Popen(['python', path_sub, str(current_user.id), apple_health_data_request_json_file_name, 'True', 'True'])
+        process = subprocess.Popen(['python', path_sub, user_id_string, apple_health_data_request_json_file_name, 'True', 'True'])
         logger_bp_apple_health.info(f"---> successfully started subprocess PID:: {process.pid} -")
 
     else:
         logger_bp_apple_health.info(f"- processing via API elif count_of_entries_sent_by_ios < 4000:-")
         response_dict = add_apple_health_to_database(current_user.id, apple_health_data_request_json_file_name)
         # run WSAS subprocess for correlation (i.e. dashboard json file only)
-        process = subprocess.Popen(['python', path_sub, str(current_user.id), apple_health_data_request_json_file_name, 'False', 'True'])
+        process = subprocess.Popen(['python', path_sub, user_id_string, apple_health_data_request_json_file_name, 'False', 'True'])
 
     return jsonify(response_dict)
 
