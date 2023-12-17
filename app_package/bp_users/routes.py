@@ -142,26 +142,53 @@ def register():
 def send_data_source_objects(current_user):
     logger_bp_users.info(f"- accessed  send_data_source_objects endpoint-")
     
-    response_list = []
+    list_data_source_objects = []
 
-    #get user's oura record count
-    # keys to data_source_object_oura must match WSiOS DataSourceObject
-    data_source_object_oura={}
-    data_source_object_oura['name']="Oura Ring"
-    record_count_oura = sess.query(OuraSleepDescriptions).filter_by(user_id=current_user.id).all()
-    data_source_object_oura['recordCount']="{:,}".format(len(record_count_oura))
-    response_list.append(data_source_object_oura)
+    # user_data_source_json_file_name = f"Dashboard-user_id{current_user.id}.json"
+    user_data_source_json_file_name = f"data_source_list_for_user_{int(user_id):04}.json"
+    json_data_path_and_name = os.path.join(current_app.config.get('DATA_SOURCE_FILES_DIR'), user_data_source_json_file_name)
+    logger_bp_users.info(f"- Dashboard table object file name and path: {json_data_path_and_name} -")
+    try:
+        with open(json_data_path_and_name,'r') as data_source_json_file:
+            dashboard_table_object = json.load(data_source_json_file)
+            list_data_source_objects.append(dashboard_table_object)
+    
+        logger_bp_users.info(f"- Returning dashboard_table_object list: {list_data_source_objects} -")
+        logger_bp_users.info(f"- END send_data_source_objects -")
+        return jsonify(list_data_source_objects)
+    except FileNotFoundError:
+        error_message = f"File not found: {json_data_path_and_name}"
+        logger_bp_users.error(error_message)
+        logger_bp_users.info(f"- END send_data_source_objects -")
+        return jsonify({"error": error_message}), 404
 
-    #get user's apple health record count
-    # keys to data_source_object_apple_health must match WSiOS DataSourceObject
-    data_source_object_apple_health={}
-    data_source_object_apple_health['name']="Apple Health Data"
-    record_count_apple_health = sess.query(AppleHealthKit).filter_by(user_id=current_user.id).all()
-    data_source_object_apple_health['recordCount']="{:,}".format(len(record_count_apple_health))
-    response_list.append(data_source_object_apple_health)
+    except Exception as e:
+        logger_bp_users.error(f"An error occurred: {e}")
+        logger_bp_users.info(f"- END send_data_source_objects -")
+        return jsonify({"error": "An unexpected error occurred"}), 500
 
-    logger_bp_users.info(f"- response_list: {response_list} -")
-    return jsonify(response_list)
+
+
+    # response_list = []
+
+    # #get user's oura record count
+    # # keys to data_source_object_oura must match WSiOS DataSourceObject
+    # data_source_object_oura={}
+    # data_source_object_oura['name']="Oura Ring"
+    # record_count_oura = sess.query(OuraSleepDescriptions).filter_by(user_id=current_user.id).all()
+    # data_source_object_oura['recordCount']="{:,}".format(len(record_count_oura))
+    # response_list.append(data_source_object_oura)
+
+    # #get user's apple health record count
+    # # keys to data_source_object_apple_health must match WSiOS DataSourceObject
+    # data_source_object_apple_health={}
+    # data_source_object_apple_health['name']="Apple Health Data"
+    # record_count_apple_health = sess.query(AppleHealthKit).filter_by(user_id=current_user.id).all()
+    # data_source_object_apple_health['recordCount']="{:,}".format(len(record_count_apple_health))
+    # response_list.append(data_source_object_apple_health)
+
+    # logger_bp_users.info(f"- response_list: {response_list} -")
+    # return jsonify(response_list)
 
 
 @bp_users.route('/send_dashboard_table_objects', methods=['POST'])

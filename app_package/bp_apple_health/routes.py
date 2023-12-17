@@ -117,8 +117,10 @@ def receive_apple_health_data(current_user):
     else:
         logger_bp_apple_health.info(f"- processing via API elif count_of_entries_sent_by_ios < 4000:-")
         response_dict = add_apple_health_to_database(current_user.id, apple_health_data_request_json_file_name)
+        count_of_records_added_to_db = response_dict.get('count_of_added_records')
         # run WSAS subprocess for correlation (i.e. dashboard json file only)
-        process = subprocess.Popen(['python', path_sub, user_id_string, apple_health_data_request_json_file_name, 'False', 'True'])
+        process = subprocess.Popen(['python', path_sub, user_id_string, apple_health_data_request_json_file_name, 'False', 'True',count_of_records_added_to_db])
+        
 
     return jsonify(response_dict)
 
