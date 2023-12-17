@@ -145,7 +145,7 @@ def send_data_source_objects(current_user):
     list_data_source_objects = []
 
     # user_data_source_json_file_name = f"Dashboard-user_id{current_user.id}.json"
-    user_data_source_json_file_name = f"data_source_list_for_user_{int(user_id):04}.json"
+    user_data_source_json_file_name = f"data_source_list_for_user_{current_user.id:04}.json"
     json_data_path_and_name = os.path.join(current_app.config.get('DATA_SOURCE_FILES_DIR'), user_data_source_json_file_name)
     logger_bp_users.info(f"- Dashboard table object file name and path: {json_data_path_and_name} -")
     try:
