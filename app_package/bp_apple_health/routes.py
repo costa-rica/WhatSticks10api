@@ -53,6 +53,24 @@ def delete_apple_health_for_user(current_user):
         # response = jsonify({"error": str(e)})
         return make_response(jsonify({"error":response_message}), 500)
 
+    # dataframe pickle
+    user_apple_health_dataframe_pickle_file_name = f"user_{current_user.id:04}_apple_health_dataframe.pkl"
+    pickle_data_path_and_name = os.path.join(current_app.config.get('DATAFRAME_FILES_DIR'), user_apple_health_dataframe_pickle_file_name)
+    if os.path.exists(pickle_data_path_and_name):
+        os.remove(pickle_data_path_and_name)
+
+    # data source json
+    user_data_source_json_file_name = f"data_source_list_for_user_{current_user.id:04}.json"
+    json_data_path_and_name = os.path.join(current_app.config.get('DATA_SOURCE_FILES_DIR'), user_data_source_json_file_name)
+    if os.path.exists(json_data_path_and_name):
+        os.remove(json_data_path_and_name)
+
+    # dashboard json
+    user_sleep_dash_json_file_name = f"dt_sleep01_{current_user.id:04}.json"
+    json_data_path_and_name = os.path.join(current_app.config.get('DASHBOARD_FILES_DIR'), user_sleep_dash_json_file_name)
+    if os.path.exists(json_data_path_and_name):
+        os.remove(json_data_path_and_name)
+
     response_dict['message'] = response_message
     response_dict['count_deleted_rows'] = "{:,}".format(count_deleted_rows)
     response_dict['count_of_entries'] = "0"
