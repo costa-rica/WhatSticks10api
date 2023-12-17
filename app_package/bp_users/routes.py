@@ -151,8 +151,8 @@ def send_data_source_objects(current_user):
     try:
         if os.path.exists(json_data_path_and_name):
             with open(json_data_path_and_name,'r') as data_source_json_file:
-                dashboard_table_object = json.load(data_source_json_file)
-                list_data_source_objects.append(dashboard_table_object)
+                list_data_source_objects = json.load(data_source_json_file)
+                # list_data_source_objects.append(dashboard_table_object)
         else:
             logger_bp_users.info(f"File not found: {json_data_path_and_name}")
             #get user's oura record count
