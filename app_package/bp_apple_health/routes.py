@@ -17,7 +17,7 @@ from sqlalchemy import and_
 from sqlalchemy.exc import IntegrityError
 from app_package.bp_apple_health.utils import add_apple_health_to_database, \
     send_confirm_email
-from app_package.bp_users.utils import delete_user_data_files
+from app_package.bp_users.utils import delete_user_data_files, delete_user_from_table
 import subprocess
 
 formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
