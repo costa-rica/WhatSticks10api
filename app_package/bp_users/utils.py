@@ -87,9 +87,9 @@ def delete_user_from_table(current_user, table):
         sess.commit()
         response_message = f"successfully deleted {count_deleted_rows} records"
     except Exception as e:
-        session.rollback()
+        sess.rollback()
         error_message = f"Failed to delete data from {table.__tablename__}, error: {e}"
-        logger.info(error_message)
+        logger_bp_users.info(error_message)
         error = e
     
     return count_deleted_rows, error
