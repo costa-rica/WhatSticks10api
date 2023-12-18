@@ -275,9 +275,18 @@ def delete_user(current_user):
     # delete: dataframe pickle, data source json, and dashboard json
     delete_user_data_files(current_user)
 
+    # delete user
+    delete_user_from_users_table = delete_user_from_table(current_user, Users)
+    if delete_user_from_users_table[1]:
+        response_message = f"failed to delete, error {delete_user_from_users_table[1]} "
+        return make_response(jsonify({"error":response_message}), 500)
+
+    deleted_records += delete_user_from_users_table[0]
+
+
     response_dict = {}
     response_dict['message'] = "Successful deletion."
     response_dict['count_deleted_rows'] = "{:,}".format(deleted_records)
 
-    logger_bp_apple_health.info(f"- response_dict: {response_dict} -")
+    logger_bp_users.info(f"- response_dict: {response_dict} -")
     return jsonify(response_dict)
