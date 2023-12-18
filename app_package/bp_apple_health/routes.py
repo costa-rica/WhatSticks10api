@@ -17,6 +17,7 @@ from sqlalchemy import and_
 from sqlalchemy.exc import IntegrityError
 from app_package.bp_apple_health.utils import add_apple_health_to_database, \
     send_confirm_email
+from app_package.bp_users.utils import delete_user_data_files
 import subprocess
 
 formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
@@ -41,37 +42,34 @@ logger_bp_apple_health.info(f'- WhatSticks10 API users Bluprints initialized')
 @token_required
 def delete_apple_health_for_user(current_user):
     logger_bp_apple_health.info(f"- accessed  delete_apple_health_for_user endpoint-")
-    response_dict = {}
-    try:
-        count_deleted_rows = sess.query(AppleHealthKit).filter_by(user_id = 1).delete()
-        sess.commit()
-        response_message = f"successfully deleted {count_deleted_rows} records"
-    except Exception as e:
-        session.rollback()
-        logger_bp_apple_health.info(f"failed to delete data, error: {e}")
-        response_message = f"failed to delete, error {e} "
-        # response = jsonify({"error": str(e)})
+
+    # try:
+    #     count_deleted_rows = sess.query(AppleHealthKit).filter_by(user_id = current_user.id).delete()
+    #     sess.commit()
+    #     response_message = f"successfully deleted {count_deleted_rows} records"
+    # except Exception as e:
+    #     session.rollback()
+    #     logger_bp_apple_health.info(f"failed to delete data, error: {e}")
+    #     response_message = f"failed to delete, error {e} "
+    #     # response = jsonify({"error": str(e)})
+    #     return make_response(jsonify({"error":response_message}), 500)
+
+
+    deleted_records = 0
+
+    delete_apple_health = delete_user_from_table(current_user, AppleHealthKit)
+    if delete_apple_health[1]:
+        response_message = f"failed to delete, error {delete_apple_health[1]} "
         return make_response(jsonify({"error":response_message}), 500)
+    
+    count_deleted_rows = delete_apple_health[0]
 
-    # dataframe pickle
-    user_apple_health_dataframe_pickle_file_name = f"user_{current_user.id:04}_apple_health_dataframe.pkl"
-    pickle_data_path_and_name = os.path.join(current_app.config.get('DATAFRAME_FILES_DIR'), user_apple_health_dataframe_pickle_file_name)
-    if os.path.exists(pickle_data_path_and_name):
-        os.remove(pickle_data_path_and_name)
 
-    # data source json
-    user_data_source_json_file_name = f"data_source_list_for_user_{current_user.id:04}.json"
-    json_data_path_and_name = os.path.join(current_app.config.get('DATA_SOURCE_FILES_DIR'), user_data_source_json_file_name)
-    if os.path.exists(json_data_path_and_name):
-        os.remove(json_data_path_and_name)
+    # delete: dataframe pickle, data source json, and dashboard json
+    delete_user_data_files(current_user)
 
-    # dashboard json
-    user_sleep_dash_json_file_name = f"dt_sleep01_{current_user.id:04}.json"
-    json_data_path_and_name = os.path.join(current_app.config.get('DASHBOARD_FILES_DIR'), user_sleep_dash_json_file_name)
-    if os.path.exists(json_data_path_and_name):
-        os.remove(json_data_path_and_name)
-
-    response_dict['message'] = response_message
+    response_dict = {}
+    response_dict['message'] = "successfully deleted apple health data."
     response_dict['count_deleted_rows'] = "{:,}".format(count_deleted_rows)
     response_dict['count_of_entries'] = "0"
 

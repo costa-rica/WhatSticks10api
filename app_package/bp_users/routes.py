@@ -11,7 +11,8 @@ from logging.handlers import RotatingFileHandler
 import json
 import socket
 from app_package.utilsDecorators import token_required
-from app_package.bp_users.utils import send_confirm_email
+from app_package.bp_users.utils import send_confirm_email, delete_user_from_table, \
+    delete_user_data_files
 # from ws_analysis import corr_sleep_steps
 
 
@@ -241,3 +242,42 @@ def send_dashboard_table_objects(current_user):
         return jsonify({"error": "An unexpected error occurred"}), 500
 
 
+        
+# this get's sent at login
+@bp_users.route('/delete_user', methods=['POST'])
+@token_required
+def delete_user(current_user):
+    logger_bp_users.info(f"- accessed  delete_user endpoint-")
+
+    deleted_records = 0
+
+    delete_apple_health = delete_user_from_table(current_user, AppleHealthKit)
+    if delete_apple_health[1]:
+        response_message = f"failed to delete, error {delete_apple_health[1]} "
+        return make_response(jsonify({"error":response_message}), 500)
+    
+    deleted_records = delete_apple_health[0]
+
+    delete_oura_sleep_descriptions = delete_user_from_table(current_user, OuraSleepDescriptions)
+    if delete_oura_sleep_descriptions[1]:
+        response_message = f"failed to delete, error {delete_oura_sleep_descriptions[1]} "
+        return make_response(jsonify({"error":response_message}), 500)
+
+    deleted_records += delete_oura_sleep_descriptions[0]
+
+    delete_oura_token = delete_user_from_table(current_user, OuraToken)
+    if delete_oura_token[1]:
+        response_message = f"failed to delete, error {delete_oura_token[1]} "
+        return make_response(jsonify({"error":response_message}), 500)
+
+    deleted_records += delete_oura_token[0]
+
+    # delete: dataframe pickle, data source json, and dashboard json
+    delete_user_data_files(current_user)
+
+    response_dict = {}
+    response_dict['message'] = "Successful deletion."
+    response_dict['count_deleted_rows'] = "{:,}".format(deleted_records)
+
+    logger_bp_apple_health.info(f"- response_dict: {response_dict} -")
+    return jsonify(response_dict)

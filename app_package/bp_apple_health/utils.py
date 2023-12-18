@@ -107,7 +107,6 @@ def add_apple_health_to_database(user_id, apple_json_data_filename, check_all_bo
     return response_dict
 
 
-
 def get_existing_user_data(user_id):
     try:
         # Define the query using a parameterized statement for safety
@@ -135,3 +134,6 @@ def send_confirm_email(email, count_of_records_added_to_db):
         logger_bp_apple_health.info(f"-- email sent --")
     else :
         logger_bp_apple_health.info(f"-- Non prod mode so no email sent --")
+
+
+
