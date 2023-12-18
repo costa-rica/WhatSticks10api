@@ -83,7 +83,10 @@ def delete_user_from_table(current_user, table):
     count_deleted_rows = 0
     error = None
     try:
-        count_deleted_rows = sess.query(table).filter_by(user_id = current_user.id).delete()
+        if table.__tablename__ != users:
+            count_deleted_rows = sess.query(table).filter_by(user_id = current_user.id).delete()
+        else:
+            count_deleted_rows = sess.query(table).filter_by(id = current_user.id).delete()
         sess.commit()
         response_message = f"successfully deleted {count_deleted_rows} records"
     except Exception as e:
