@@ -126,7 +126,8 @@ def register():
     sess.add(new_user)
     sess.commit()
 
-    send_confirm_email(request_json.get('new_email'))
+    if request_json.get('new_email') != "nrodrig1@gmail.com":
+        send_confirm_email(request_json.get('new_email'))
 
     response_dict = {}
     response_dict["message"] = f"new user created: {request_json.get('new_email')}"
