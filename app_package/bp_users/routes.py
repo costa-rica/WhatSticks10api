@@ -253,24 +253,24 @@ def delete_user(current_user):
 
     delete_apple_health = delete_user_from_table(current_user, AppleHealthKit)
     if delete_apple_health[1]:
-        logger_bp_users.info(f"- deleted AppleHealthKit for user: {current_user.id} successfully -")
-        response_message = f"failed to delete, error {delete_apple_health[1]} "
+        logger_bp_users.info(f"- Error trying to delete AppleHealthKit for user {current_user.id}, error: {delete_apple_health[1]} -")
+        response_message = f"- Error trying to delete AppleHealthKit for user {current_user.id}, error: {delete_apple_health[1]}"
         return make_response(jsonify({"error":response_message}), 500)
     
     deleted_records = delete_apple_health[0]
 
     delete_oura_sleep_descriptions = delete_user_from_table(current_user, OuraSleepDescriptions)
     if delete_oura_sleep_descriptions[1]:
-        logger_bp_users.info(f"- deleted OuraSleepDescriptions for user: {current_user.id} successfully -")
-        response_message = f"failed to delete, error {delete_oura_sleep_descriptions[1]} "
+        logger_bp_users.info(f"- Error trying to delete OuraSleepDescriptions for user {current_user.id}, error: {delete_oura_sleep_descriptions[1]} -")
+        response_message = f"Error trying to delete OuraSleepDescriptions for user {current_user.id}, error: {delete_oura_sleep_descriptions[1]} "
         return make_response(jsonify({"error":response_message}), 500)
 
     deleted_records += delete_oura_sleep_descriptions[0]
 
     delete_oura_token = delete_user_from_table(current_user, OuraToken)
     if delete_oura_token[1]:
-        logger_bp_users.info(f"- deleted OuraToken for user: {current_user.id} successfully -")
-        response_message = f"failed to delete, error {delete_oura_token[1]} "
+        logger_bp_users.info(f"- Error trying to delete OuraToken for user {current_user.id}, error: {delete_oura_token[1]} -")
+        response_message = f"Error trying to delete OuraToken for user {current_user.id}, error: {delete_oura_token[1]} "
         return make_response(jsonify({"error":response_message}), 500)
 
     deleted_records += delete_oura_token[0]
@@ -281,8 +281,8 @@ def delete_user(current_user):
     # delete user
     delete_user_from_users_table = delete_user_from_table(current_user, Users)
     if delete_user_from_users_table[1]:
-        logger_bp_users.info(f"- deleted Users for user: ___ successfully -")
-        response_message = f"failed to delete, error {delete_user_from_users_table[1]} "
+        logger_bp_users.info(f"- Error trying to delete Users for user {current_user.id}, error: {delete_user_from_users_table[1]} -")
+        response_message = f"Error trying to delete Users for user {current_user.id}, error: {delete_user_from_users_table[1]} "
         return make_response(jsonify({"error":response_message}), 500)
 
     deleted_records += delete_user_from_users_table[0]
