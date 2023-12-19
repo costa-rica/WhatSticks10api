@@ -83,7 +83,7 @@ def delete_user_from_table(current_user, table):
     count_deleted_rows = 0
     error = None
     try:
-        if table.__tablename__ != users:
+        if table.__tablename__ != "users":
             count_deleted_rows = sess.query(table).filter_by(user_id = current_user.id).delete()
         else:
             count_deleted_rows = sess.query(table).filter_by(id = current_user.id).delete()
