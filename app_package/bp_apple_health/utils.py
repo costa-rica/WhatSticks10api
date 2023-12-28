@@ -1,6 +1,6 @@
 from flask import Blueprint
 from flask import request, jsonify, make_response, current_app
-from ws_models import sess, engine, AppleHealthKit
+from ws_models import sess, engine, AppleHealthQuantityCategory
 from werkzeug.security import generate_password_hash, check_password_hash #password hashing
 import bcrypt
 from datetime import datetime
@@ -93,7 +93,7 @@ def add_apple_health_to_database(user_id, apple_json_data_filename, check_all_bo
     count_of_records_added_to_db = df_unique_new_user_data.to_sql('apple_health_kit', con=engine, if_exists='append', index=False)
 
     logger_bp_apple_health.info(f"- count_of_records_added_to_db: {count_of_records_added_to_db} -")
-    count_of_user_apple_health_records = sess.query(AppleHealthKit).filter_by(user_id=user_id).count()
+    count_of_user_apple_health_records = sess.query(AppleHealthQuantityCategory).filter_by(user_id=user_id).count()
     logger_bp_apple_health.info(f"- count of records in db: {count_of_user_apple_health_records}")
     logger_bp_apple_health.info(f"--- add_apple_health_to_database COMPLETE ---")
     

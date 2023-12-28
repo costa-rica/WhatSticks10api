@@ -1,6 +1,6 @@
 from flask import Blueprint
 from flask import request, jsonify, make_response, current_app
-from ws_models import sess, Users, AppleHealthKit
+from ws_models import sess, Users, AppleHealthQuantityCategory
 from werkzeug.security import generate_password_hash, check_password_hash #password hashing
 import bcrypt
 from datetime import datetime
@@ -44,7 +44,7 @@ def delete_apple_health_for_user(current_user):
     logger_bp_apple_health.info(f"- accessed  delete_apple_health_for_user endpoint-")
 
     # try:
-    #     count_deleted_rows = sess.query(AppleHealthKit).filter_by(user_id = current_user.id).delete()
+    #     count_deleted_rows = sess.query(AppleHealthQuantityCategory).filter_by(user_id = current_user.id).delete()
     #     sess.commit()
     #     response_message = f"successfully deleted {count_deleted_rows} records"
     # except Exception as e:
@@ -57,7 +57,7 @@ def delete_apple_health_for_user(current_user):
 
     deleted_records = 0
 
-    delete_apple_health = delete_user_from_table(current_user, AppleHealthKit)
+    delete_apple_health = delete_user_from_table(current_user, AppleHealthQuantityCategory)
     if delete_apple_health[1]:
         response_message = f"failed to delete, error {delete_apple_health[1]} "
         return make_response(jsonify({"error":response_message}), 500)

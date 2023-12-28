@@ -1,6 +1,6 @@
 from flask import Blueprint
 from flask import request, jsonify, make_response, current_app
-from ws_models import sess, Users, OuraToken, OuraSleepDescriptions, AppleHealthKit
+from ws_models import sess, Users, OuraToken, OuraSleepDescriptions, AppleHealthQuantityCategory
 from werkzeug.security import generate_password_hash, check_password_hash #password hashing
 import bcrypt
 import datetime
@@ -169,7 +169,7 @@ def send_data_source_objects(current_user):
             # keys to data_source_object_apple_health must match WSiOS DataSourceObject
             data_source_object_apple_health={}
             data_source_object_apple_health['name']="Apple Health Data"
-            record_count_apple_health = sess.query(AppleHealthKit).filter_by(user_id=current_user.id).all()
+            record_count_apple_health = sess.query(AppleHealthQuantityCategory).filter_by(user_id=current_user.id).all()
             data_source_object_apple_health['recordCount']="{:,}".format(len(record_count_apple_health))
             list_data_source_objects.append(data_source_object_apple_health)
     
@@ -203,7 +203,7 @@ def send_data_source_objects(current_user):
     # # keys to data_source_object_apple_health must match WSiOS DataSourceObject
     # data_source_object_apple_health={}
     # data_source_object_apple_health['name']="Apple Health Data"
-    # record_count_apple_health = sess.query(AppleHealthKit).filter_by(user_id=current_user.id).all()
+    # record_count_apple_health = sess.query(AppleHealthQuantityCategory).filter_by(user_id=current_user.id).all()
     # data_source_object_apple_health['recordCount']="{:,}".format(len(record_count_apple_health))
     # response_list.append(data_source_object_apple_health)
 
@@ -252,10 +252,10 @@ def delete_user(current_user):
 
     deleted_records = 0
 
-    delete_apple_health = delete_user_from_table(current_user, AppleHealthKit)
+    delete_apple_health = delete_user_from_table(current_user, AppleHealthQuantityCategory)
     if delete_apple_health[1]:
-        logger_bp_users.info(f"- Error trying to delete AppleHealthKit for user {current_user.id}, error: {delete_apple_health[1]} -")
-        response_message = f"- Error trying to delete AppleHealthKit for user {current_user.id}, error: {delete_apple_health[1]}"
+        logger_bp_users.info(f"- Error trying to delete AppleHealthQuantityCategory for user {current_user.id}, error: {delete_apple_health[1]} -")
+        response_message = f"- Error trying to delete AppleHealthQuantityCategory for user {current_user.id}, error: {delete_apple_health[1]}"
         return make_response(jsonify({"error":response_message}), 500)
     
     deleted_records = delete_apple_health[0]
