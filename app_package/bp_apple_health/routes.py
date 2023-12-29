@@ -167,6 +167,8 @@ def receive_apple_health_data(current_user):
             # run WSAS subprocess for correlation (i.e. dashboard json file only)
             process = subprocess.Popen(['python', path_sub, user_id_string, apple_health_data_request_json_file_name, 'False', 'True',count_of_records_added_to_db])
 
+        logger_bp_apple_health.info(f"---> WSAPI > receive_apple_health_data respone for <-----")
+        logger_bp_apple_health.info(f"{response_dict}")
         return jsonify(response_dict)
 
 
