@@ -43,18 +43,6 @@ logger_bp_apple_health.info(f'- WhatSticks10 API users Bluprints initialized')
 def delete_apple_health_for_user(current_user):
     logger_bp_apple_health.info(f"- accessed  delete_apple_health_for_user endpoint-")
 
-    # try:
-    #     count_deleted_rows = sess.query(AppleHealthQuantityCategory).filter_by(user_id = current_user.id).delete()
-    #     sess.commit()
-    #     response_message = f"successfully deleted {count_deleted_rows} records"
-    # except Exception as e:
-    #     session.rollback()
-    #     logger_bp_apple_health.info(f"failed to delete data, error: {e}")
-    #     response_message = f"failed to delete, error {e} "
-    #     # response = jsonify({"error": str(e)})
-    #     return make_response(jsonify({"error":response_message}), 500)
-
-
     deleted_records = 0
 
     delete_apple_health = delete_user_from_table(current_user, AppleHealthQuantityCategory)
@@ -170,6 +158,49 @@ def receive_apple_health_data(current_user):
         logger_bp_apple_health.info(f"---> WSAPI > receive_apple_health_data respone for <-----")
         logger_bp_apple_health.info(f"{response_dict}")
         return jsonify(response_dict)
+
+
+@bp_apple_health.route('/receive_apple_workouts_data', methods=['POST'])
+@token_required
+def receive_apple_workouts_data(current_user):
+    logger_bp_apple_health.info(f"- accessed  receive_apple_workouts_data endpoint-")
+    response_dict = {}
+    try:
+        request_json = request.json
+    except Exception as e:
+        response_dict['error':e]
+        response_dict['status':"httpBody data recieved not json not parse-able."]
+
+        logger_bp_apple_health.info(e)
+        logger_bp_apple_health.info(f"- response_dict: {response_dict} -")
+        # return jsonify({"status": "httpBody data recieved not json not parse-able."})
+        return jsonify(response_dict)
+
+    apple_health_workouts_request_json_file_name = request_json.get("filename")
+    apple_health_workouts_json = request_json.get("arryAppleHealthWorkout")
+    count_of_entries_sent_by_ios = len(apple_health_data_json)
+    json_data_path_and_name = os.path.join(current_app.config.get('APPLE_HEALTH_DIR'),apple_health_workouts_request_json_file_name)
+
+    logger_bp_apple_health.info(f"- count_of_entries_sent_by_ios (this time): {count_of_entries_sent_by_ios} -")
+
+    # new_data_dict = {}
+
+    with open(json_data_path_and_name, 'w') as file:
+        json.dump(apple_health_data_json, file, indent=4)
+
+    #############################
+    # Since the data process flow makes apple workouts first this is the end of the processing for this endpoint;
+    # receive_apple_health_data endpoint will kickoff What Sticks Apple Service
+    # What Sticks Apple Service will look for "AppleWorkouts-user_id\(userId)-\(dateString).json" file for current user
+    ####################################
+    response_dict = {
+        'message': "AppleWorkouts .json file stored for user",
+    }
+
+    logger_bp_apple_health.info(f"---> WSAPI > receive_apple_workouts_data respone for <-----")
+    logger_bp_apple_health.info(f"{response_dict}")
+    return jsonify(response_dict)
+
 
 
 @bp_apple_health.route('/apple_health_subprocess_complete', methods=['POST'])
