@@ -178,7 +178,7 @@ def receive_apple_workouts_data(current_user):
 
     apple_health_workouts_request_json_file_name = request_json.get("filename")
     apple_health_workouts_json = request_json.get("arryAppleHealthWorkout")
-    count_of_entries_sent_by_ios = len(apple_health_data_json)
+    count_of_entries_sent_by_ios = len(apple_health_workouts_json)
     json_data_path_and_name = os.path.join(current_app.config.get('APPLE_HEALTH_DIR'),apple_health_workouts_request_json_file_name)
 
     logger_bp_apple_health.info(f"- count_of_entries_sent_by_ios (this time): {count_of_entries_sent_by_ios} -")
@@ -186,7 +186,7 @@ def receive_apple_workouts_data(current_user):
     # new_data_dict = {}
 
     with open(json_data_path_and_name, 'w') as file:
-        json.dump(apple_health_data_json, file, indent=4)
+        json.dump(apple_health_workouts_json, file, indent=4)
 
     #############################
     # Since the data process flow makes apple workouts first this is the end of the processing for this endpoint;
