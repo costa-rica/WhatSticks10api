@@ -61,11 +61,18 @@ def send_confirm_email(email):
 
 def delete_user_data_files(current_user):
     
-    # dataframe pickle
+    # dataframe pickle - apple category & quantity
     user_apple_health_dataframe_pickle_file_name = f"user_{current_user.id:04}_apple_health_dataframe.pkl"
     pickle_data_path_and_name = os.path.join(current_app.config.get('DATAFRAME_FILES_DIR'), user_apple_health_dataframe_pickle_file_name)
     if os.path.exists(pickle_data_path_and_name):
         logger_bp_users.info(f"- deleted: {user_apple_health_dataframe_pickle_file_name} successfully -")
+        os.remove(pickle_data_path_and_name)
+    
+    # dataframe pickle - apple workouts
+    user_apple_health_workouts_dataframe_pickle_file_name = f"user_{current_user.id:04}_apple_workouts_dataframe.pkl"
+    pickle_data_path_and_name = os.path.join(current_app.config.get('DATAFRAME_FILES_DIR'), user_apple_health_workouts_dataframe_pickle_file_name)
+    if os.path.exists(pickle_data_path_and_name):
+        logger_bp_users.info(f"- deleted: {user_apple_health_workouts_dataframe_pickle_file_name} successfully -")
         os.remove(pickle_data_path_and_name)
 
     # data source json
