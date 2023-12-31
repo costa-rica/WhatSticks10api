@@ -97,7 +97,7 @@ def receive_apple_qty_cat_data(current_user):
     # apple_health_data_request_json_file_name = f"AppleHealth-user_id{current_user.id}-{timestamp}.json"
     # apple_health_data_request_json_file_name = f"{current_app.config.get('APPLE_HEALTH_QUANTITY_CATEGORY_FILENAME_PREFIX')}-user_id{current_user.id}-{time_stamp_str_for_apple_health_data_request_json_file_name}.json"
     apple_health_workouts_json_filename_str = apple_health_workouts_json_filename(current_user.id, time_stamp_str_for_json_file_name)
-    json_data_path_and_name = os.path.join(current_app.config.get('APPLE_HEALTH_DIR'),apple_health_data_request_json_file_name)
+    json_data_path_and_name = os.path.join(current_app.config.get('APPLE_HEALTH_DIR'),apple_health_workouts_json_filename_str)
 
     logger_bp_apple_health.info(f"- count_of_entries_sent_by_ios (this time): {count_of_entries_sent_by_ios} -")
 
@@ -191,9 +191,9 @@ def receive_apple_workouts_data(current_user):
     apple_health_workouts_json = request_json.get("arryAppleHealthWorkout")
     count_of_entries_sent_by_ios = len(apple_health_workouts_json)
     # apple_health_workouts_data_request_json_file_name = f"{current_app.config.get('APPLE_HEALTH_WORKOUTS_FILENAME_PREFIX')}-user_id{current_user.id}-{time_stamp_str_for_apple_health_workouts_request_json_file_name}.json"
-    apple_health_workouts_data_request_json_file_name = apple_health_workouts_json_filename(current_user.id, time_stamp_str_for_json_file_name)
+    apple_health_workouts_json_filename_str = apple_health_workouts_json_filename(current_user.id, time_stamp_str_for_json_file_name)
     # json_data_path_and_name = os.path.join(current_app.config.get('APPLE_HEALTH_DIR'),apple_health_workouts_request_json_file_name)
-    json_data_path_and_name = os.path.join(current_app.config.get('APPLE_HEALTH_DIR'),apple_health_workouts_data_request_json_file_name)
+    json_data_path_and_name = os.path.join(current_app.config.get('APPLE_HEALTH_DIR'),apple_health_workouts_json_filename_str)
     logger_bp_apple_health.info(f"- count_of_entries_sent_by_ios (this time): {count_of_entries_sent_by_ios} -")
 
     # new_data_dict = {}
