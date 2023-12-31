@@ -1,6 +1,6 @@
 from flask import Blueprint
 from flask import request, jsonify, make_response, current_app
-from ws_models import sess, Users, AppleHealthQuantityCategory
+from ws_models import sess, Users, AppleHealthQuantityCategory, AppleHealthWorkout
 from werkzeug.security import generate_password_hash, check_password_hash #password hashing
 import bcrypt
 from datetime import datetime
