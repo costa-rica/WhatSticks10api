@@ -154,7 +154,7 @@ def receive_apple_qty_cat_data(current_user):
 
             # run WSAS subprocess
             # process = subprocess.Popen(['python', path_sub, user_id_string, apple_health_data_request_json_file_name, 'True', 'True'])
-            process = subprocess.Popen(['python', path_sub, user_id_string, time_stamp_str_for_apple_health_data_request_json_file_name, 'True', 'True'])
+            process = subprocess.Popen(['python', path_sub, user_id_string, time_stamp_str_for_json_file_name, 'True', 'True'])
             logger_bp_apple_health.info(f"---> successfully started subprocess PID:: {process.pid} -")
 
         # else:
