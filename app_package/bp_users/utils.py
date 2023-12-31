@@ -91,7 +91,7 @@ def delete_user_from_table(current_user, table):
         else:
             count_deleted_rows = sess.query(table).filter_by(id = current_user.id).delete()
         sess.commit()
-        response_message = f"successfully deleted {count_deleted_rows} records"
+        response_message = f"Successfully deleted {count_deleted_rows} records from {table.__tablename__}"
     except Exception as e:
         sess.rollback()
         error_message = f"Failed to delete data from {table.__tablename__}, error: {e}"

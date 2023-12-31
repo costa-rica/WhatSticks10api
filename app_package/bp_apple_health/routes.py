@@ -46,6 +46,7 @@ def delete_apple_health_for_user(current_user):
     deleted_records = 0
 
     delete_apple_health = delete_user_from_table(current_user, AppleHealthQuantityCategory)
+    delete_apple_health = delete_user_from_table(current_user, AppleHealthWorkout)
     if delete_apple_health[1]:
         response_message = f"failed to delete, error {delete_apple_health[1]} "
         return make_response(jsonify({"error":response_message}), 500)
