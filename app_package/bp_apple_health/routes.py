@@ -16,7 +16,7 @@ import requests
 from sqlalchemy import and_
 from sqlalchemy.exc import IntegrityError
 from app_package.bp_apple_health.utils import add_apple_health_to_database, \
-    send_confirm_email
+    send_confirm_email, apple_health_qty_cat_json_filename, apple_health_workouts_json_filename
 from app_package.bp_users.utils import delete_user_data_files, delete_user_from_table
 import subprocess
 
@@ -66,10 +66,10 @@ def delete_apple_health_for_user(current_user):
     return jsonify(response_dict)
 
 
-@bp_apple_health.route('/receive_apple_health_data', methods=['POST'])
+@bp_apple_health.route('/receive_apple_qty_cat_data', methods=['POST'])
 @token_required
-def receive_apple_health_data(current_user):
-    logger_bp_apple_health.info(f"- accessed  receive_apple_health_data endpoint-")
+def receive_apple_qty_cat_data(current_user):
+    logger_bp_apple_health.info(f"- accessed  receive_apple_qty_cat_data endpoint-")
     response_dict = {}
     try:
         request_json = request.json
@@ -86,12 +86,17 @@ def receive_apple_health_data(current_user):
     # last chunk
     last_chunk = request_json.get("last_chunk") == "True"
     # filename example: AppleHealthQuantityCategory-user_id1-20231229-1612.json
-    apple_health_data_request_json_file_name = request_json.get("filename")
+    # let filename = "AppleHealthQuantityCategory-user_id\(userId)-\(dateStringTimeStamp).json"
+    # apple_health_data_request_json_file_name = request_json.get("filename")
+    # apple_health_data_request_json_file_name = request_json.get("dateStringTimeStamp")
+    time_stamp_str_for_json_file_name = request_json.get("dateStringTimeStamp")
     apple_health_data_json = request_json.get("arryAppleHealthQuantityCategory")
     count_of_entries_sent_by_ios = len(apple_health_data_json)
 
     # timestamp = datetime.now().strftime('%Y%m%d-%H%M')
     # apple_health_data_request_json_file_name = f"AppleHealth-user_id{current_user.id}-{timestamp}.json"
+    # apple_health_data_request_json_file_name = f"{current_app.config.get('APPLE_HEALTH_QUANTITY_CATEGORY_FILENAME_PREFIX')}-user_id{current_user.id}-{time_stamp_str_for_apple_health_data_request_json_file_name}.json"
+    apple_health_workouts_json_filename_str = apple_health_workouts_json_filename(current_user.id, time_stamp_str_for_json_file_name)
     json_data_path_and_name = os.path.join(current_app.config.get('APPLE_HEALTH_DIR'),apple_health_data_request_json_file_name)
 
     logger_bp_apple_health.info(f"- count_of_entries_sent_by_ios (this time): {count_of_entries_sent_by_ios} -")
@@ -138,23 +143,27 @@ def receive_apple_health_data(current_user):
             }
             return jsonify(response_dict)
 
-        elif count_of_entries_sent_by_ios > 4000:
-            logger_bp_apple_health.info(f"- processing via WSAS, elif count_of_entries_sent_by_ios > 4000:-")
+        # elif count_of_entries_sent_by_ios > 4000:
+        else:
+            # logger_bp_apple_health.info(f"- processing via WSAS, elif count_of_entries_sent_by_ios > 4000:-")
+            logger_bp_apple_health.info(f"- processing via WSAS -")
             response_dict = {
                 'message': "No data sent",
                 'alertMessage':f"Apple Health Data contains {count_of_entries_sent_by_ios:,} records. \nYou will receive an email when all your data is added to the database."
             }
 
             # run WSAS subprocess
-            process = subprocess.Popen(['python', path_sub, user_id_string, apple_health_data_request_json_file_name, 'True', 'True'])
+            # process = subprocess.Popen(['python', path_sub, user_id_string, apple_health_data_request_json_file_name, 'True', 'True'])
+            process = subprocess.Popen(['python', path_sub, user_id_string, time_stamp_str_for_apple_health_data_request_json_file_name, 'True', 'True'])
             logger_bp_apple_health.info(f"---> successfully started subprocess PID:: {process.pid} -")
 
-        else:
-            logger_bp_apple_health.info(f"- processing via API elif count_of_entries_sent_by_ios < 4000:-")
-            response_dict = add_apple_health_to_database(current_user.id, apple_health_data_request_json_file_name)
-            count_of_records_added_to_db = response_dict.get('count_of_added_records')
-            # run WSAS subprocess for correlation (i.e. dashboard json file only)
-            process = subprocess.Popen(['python', path_sub, user_id_string, apple_health_data_request_json_file_name, 'False', 'True',count_of_records_added_to_db])
+        # else:
+        #     logger_bp_apple_health.info(f"- processing via API elif count_of_entries_sent_by_ios < 4000:-")
+        #     response_dict = add_apple_health_to_database(current_user.id, apple_health_data_request_json_file_name)
+        #     count_of_records_added_to_db = response_dict.get('count_of_added_records')
+        #     # run WSAS subprocess for correlation (i.e. dashboard json file only)
+        #     # process = subprocess.Popen(['python', path_sub, user_id_string, apple_health_data_request_json_file_name, 'False', 'True',count_of_records_added_to_db])
+        #     process = subprocess.Popen(['python', path_sub, user_id_string, time_stamp_str_for_apple_health_data_request_json_file_name, 'False', 'True',count_of_records_added_to_db])
 
         logger_bp_apple_health.info(f"---> WSAPI > receive_apple_health_data respone for <-----")
         logger_bp_apple_health.info(f"{response_dict}")
@@ -177,11 +186,14 @@ def receive_apple_workouts_data(current_user):
         # return jsonify({"status": "httpBody data recieved not json not parse-able."})
         return jsonify(response_dict)
 
-    apple_health_workouts_request_json_file_name = request_json.get("filename")
+    # apple_health_workouts_request_json_file_name = request_json.get("filename")
+    time_stamp_str_for_json_file_name = request_json.get("dateStringTimeStamp")
     apple_health_workouts_json = request_json.get("arryAppleHealthWorkout")
     count_of_entries_sent_by_ios = len(apple_health_workouts_json)
-    json_data_path_and_name = os.path.join(current_app.config.get('APPLE_HEALTH_DIR'),apple_health_workouts_request_json_file_name)
-
+    # apple_health_workouts_data_request_json_file_name = f"{current_app.config.get('APPLE_HEALTH_WORKOUTS_FILENAME_PREFIX')}-user_id{current_user.id}-{time_stamp_str_for_apple_health_workouts_request_json_file_name}.json"
+    apple_health_workouts_data_request_json_file_name = apple_health_workouts_json_filename(current_user.id, time_stamp_str_for_json_file_name)
+    # json_data_path_and_name = os.path.join(current_app.config.get('APPLE_HEALTH_DIR'),apple_health_workouts_request_json_file_name)
+    json_data_path_and_name = os.path.join(current_app.config.get('APPLE_HEALTH_DIR'),apple_health_workouts_data_request_json_file_name)
     logger_bp_apple_health.info(f"- count_of_entries_sent_by_ios (this time): {count_of_entries_sent_by_ios} -")
 
     # new_data_dict = {}

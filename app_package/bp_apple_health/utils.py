@@ -136,4 +136,8 @@ def send_confirm_email(email, count_of_records_added_to_db):
         logger_bp_apple_health.info(f"-- Non prod mode so no email sent --")
 
 
+def apple_health_qty_cat_json_filename(user_id, timestamp_str):
+    return f"{current_app.config.get('APPLE_HEALTH_QUANTITY_CATEGORY_FILENAME_PREFIX')}-user_id{user_id}-{timestamp_str}.json"
 
+def apple_health_workouts_json_filename(user_id, timestamp_str):
+    return f"{current_app.config.get('APPLE_HEALTH_WORKOUTS_FILENAME_PREFIX')}-user_id{user_id}-{timestamp_str}.json"

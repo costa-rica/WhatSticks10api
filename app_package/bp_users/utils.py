@@ -89,6 +89,7 @@ def delete_user_data_files(current_user):
         logger_bp_users.info(f"- deleted: {user_sleep_dash_json_file_name} successfully -")
         os.remove(json_data_path_and_name)
 
+
 def delete_user_from_table(current_user, table):
     count_deleted_rows = 0
     error = None
