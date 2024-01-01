@@ -52,41 +52,61 @@ def create_app(config_for_flask = config):
 
     ############################################################################
     ## Build Auxiliary directories in DB_ROOT
-    if not os.path.exists(config_for_flask.DB_ROOT):
-        os.makedirs(config_for_flask.DB_ROOT)
-    else:
-        logger_init.info(f"DB_ROOT already exists: {os.path.join(config_for_flask.DB_ROOT,os.environ.get('DB_NAME_WHAT_STICKS'))}")
+    create_folder(config_for_flask.DB_ROOT)
+    # if not os.path.exists(config_for_flask.DB_ROOT):
+    #     os.makedirs(config_for_flask.DB_ROOT)
+    # else:
+    #     logger_init.info(f"DB_ROOT already exists: {os.path.join(config_for_flask.DB_ROOT,os.environ.get('DB_NAME_WHAT_STICKS'))}")
 
-    # config.DIR_DB_AUXIILARY directory:
-    if not os.path.exists(config_for_flask.DIR_DB_AUXIILARY):
-        os.makedirs(config_for_flask.DIR_DB_AUXIILARY)
-    # config.DIR_DB_AUX_IMAGES_PEOPLE directory:
-    if not os.path.exists(config_for_flask.DIR_DB_AUX_IMAGES_PEOPLE):
-        os.makedirs(config_for_flask.DIR_DB_AUX_IMAGES_PEOPLE)
-    # config.APPLE_HEALTH_DIR directory:
-    if not os.path.exists(config_for_flask.APPLE_HEALTH_DIR):
-        os.makedirs(config_for_flask.APPLE_HEALTH_DIR)
-    # config.DASHBOARD_FILES_DIR directory:
-    if not os.path.exists(config_for_flask.DASHBOARD_FILES_DIR):
-        os.makedirs(config_for_flask.DASHBOARD_FILES_DIR)
-    # config.DATA_SOURCE_FILES_DIR directory:
-    if not os.path.exists(config_for_flask.DATA_SOURCE_FILES_DIR):
-        os.makedirs(config_for_flask.DATA_SOURCE_FILES_DIR)
-    # config.DATAFRAME_FILES_DIR directory:
-    if not os.path.exists(config_for_flask.DATAFRAME_FILES_DIR):
-        os.makedirs(config_for_flask.DATAFRAME_FILES_DIR)
-    # config.DIR_DB_BLOG directory:
-    if not os.path.exists(config_for_flask.DIR_DB_BLOG):
-        os.makedirs(config_for_flask.DIR_DB_BLOG)
-    # config.DIR_DB_NEWS directory:
-    if not os.path.exists(config_for_flask.DIR_DB_NEWS):
-        os.makedirs(config_for_flask.DIR_DB_NEWS)
-    # config.DIR_DB_AUX_FILES_UTILITY directory:
-    if not os.path.exists(config_for_flask.DIR_DB_AUX_FILES_UTILITY):
-        os.makedirs(config_for_flask.DIR_DB_AUX_FILES_UTILITY)
-    # config.DIR_DB_AUX_OURA_SLEEP_RESPONSES directory:
-    if not os.path.exists(config_for_flask.DIR_DB_AUX_OURA_SLEEP_RESPONSES):
-        os.makedirs(config_for_flask.DIR_DB_AUX_OURA_SLEEP_RESPONSES)
+
+    create_folder(config_for_flask.DATABASE_HELPER_FILES)
+    create_folder(config_for_flask.APPLE_HEALTH_DIR)
+    create_folder(config_for_flask.DATAFRAME_FILES_DIR)
+    create_folder(config_for_flask.OURA_SLEEP_RESPONSES)
+    create_folder(config_for_flask.WS_IOS_HELPER_FILES)
+
+    create_folder(config_for_flask.DASHBOARD_FILES_DIR)
+    create_folder(config_for_flask.DATA_SOURCE_FILES_DIR)
+    create_folder(config_for_flask.DIR_DB_AUXIILARY)
+    create_folder(config_for_flask.DIR_DB_BLOG)
+
+    create_folder(config_for_flask.DIR_DB_NEWS)
+    create_folder(config_for_flask.DIR_DB_AUX_IMAGES_PEOPLE)
+    create_folder(config_for_flask.DIR_DB_AUX_FILES_UTILITY)
+
+    
+    ##### OLD ########
+
+    # # config.DIR_DB_AUXIILARY directory:
+    # if not os.path.exists(config_for_flask.DIR_DB_AUXIILARY):
+    #     os.makedirs(config_for_flask.DIR_DB_AUXIILARY)
+    # # config.DIR_DB_AUX_IMAGES_PEOPLE directory:
+    # if not os.path.exists(config_for_flask.DIR_DB_AUX_IMAGES_PEOPLE):
+    #     os.makedirs(config_for_flask.DIR_DB_AUX_IMAGES_PEOPLE)
+    # # config.APPLE_HEALTH_DIR directory:
+    # if not os.path.exists(config_for_flask.APPLE_HEALTH_DIR):
+    #     os.makedirs(config_for_flask.APPLE_HEALTH_DIR)
+    # # config.DASHBOARD_FILES_DIR directory:
+    # if not os.path.exists(config_for_flask.DASHBOARD_FILES_DIR):
+    #     os.makedirs(config_for_flask.DASHBOARD_FILES_DIR)
+    # # config.DATA_SOURCE_FILES_DIR directory:
+    # if not os.path.exists(config_for_flask.DATA_SOURCE_FILES_DIR):
+    #     os.makedirs(config_for_flask.DATA_SOURCE_FILES_DIR)
+    # # config.DATAFRAME_FILES_DIR directory:
+    # if not os.path.exists(config_for_flask.DATAFRAME_FILES_DIR):
+    #     os.makedirs(config_for_flask.DATAFRAME_FILES_DIR)
+    # # config.DIR_DB_BLOG directory:
+    # if not os.path.exists(config_for_flask.DIR_DB_BLOG):
+    #     os.makedirs(config_for_flask.DIR_DB_BLOG)
+    # # config.DIR_DB_NEWS directory:
+    # if not os.path.exists(config_for_flask.DIR_DB_NEWS):
+    #     os.makedirs(config_for_flask.DIR_DB_NEWS)
+    # # config.DIR_DB_AUX_FILES_UTILITY directory:
+    # if not os.path.exists(config_for_flask.DIR_DB_AUX_FILES_UTILITY):
+    #     os.makedirs(config_for_flask.DIR_DB_AUX_FILES_UTILITY)
+    # # config.DIR_DB_AUX_OURA_SLEEP_RESPONSES directory:
+    # if not os.path.exists(config_for_flask.DIR_DB_AUX_OURA_SLEEP_RESPONSES):
+    #     os.makedirs(config_for_flask.DIR_DB_AUX_OURA_SLEEP_RESPONSES)
 
     ############################################################################
     ## Build Sqlite database files
@@ -113,3 +133,8 @@ def create_app(config_for_flask = config):
     # app.register_blueprint(api)
 
     return app
+
+def create_folder(folder_path):
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+        logger_init.info(f"created: {folder_path}")
