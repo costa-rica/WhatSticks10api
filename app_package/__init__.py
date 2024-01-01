@@ -43,7 +43,7 @@ logger_init.info(f'--- Starting WhatSticks10 API ---')
 mail = Mail()
 
 def create_app(config_for_flask = config):
-    print("---- whatSticks09api/app_package/__init__.py create_app() ----")
+    logger_init.info("- WhatSticks10Api/app_package/__init__.py create_app() -")
     app = Flask(__name__)   
     app.config.from_object(config_for_flask)
     mail.init_app(app)
@@ -51,86 +51,42 @@ def create_app(config_for_flask = config):
 
 
     ############################################################################
-    ## Build Auxiliary directories in DB_ROOT
+    ## create folders for DB_ROOT
     create_folder(config_for_flask.DB_ROOT)
-    # if not os.path.exists(config_for_flask.DB_ROOT):
-    #     os.makedirs(config_for_flask.DB_ROOT)
-    # else:
-    #     logger_init.info(f"DB_ROOT already exists: {os.path.join(config_for_flask.DB_ROOT,os.environ.get('DB_NAME_WHAT_STICKS'))}")
-
-
+    # database helper files
     create_folder(config_for_flask.DATABASE_HELPER_FILES)
     create_folder(config_for_flask.APPLE_HEALTH_DIR)
     create_folder(config_for_flask.DATAFRAME_FILES_DIR)
     create_folder(config_for_flask.OURA_SLEEP_RESPONSES)
+    # ios helper files
     create_folder(config_for_flask.WS_IOS_HELPER_FILES)
-
     create_folder(config_for_flask.DASHBOARD_FILES_DIR)
     create_folder(config_for_flask.DATA_SOURCE_FILES_DIR)
-    create_folder(config_for_flask.DIR_DB_AUXIILARY)
+    # user files
+    create_folder(config_for_flask.USER_FILES)
+    create_folder(config_for_flask.DAILY_CSV)
+    create_folder(config_for_flask.RAW_FILES_FOR_DAILY_CSV)
+    # auxiliary
+    create_folder(config_for_flask.DIR_DB_AUXILIARY)
     create_folder(config_for_flask.DIR_DB_BLOG)
-
     create_folder(config_for_flask.DIR_DB_NEWS)
     create_folder(config_for_flask.DIR_DB_AUX_IMAGES_PEOPLE)
     create_folder(config_for_flask.DIR_DB_AUX_FILES_UTILITY)
-
-    
-    ##### OLD ########
-
-    # # config.DIR_DB_AUXIILARY directory:
-    # if not os.path.exists(config_for_flask.DIR_DB_AUXIILARY):
-    #     os.makedirs(config_for_flask.DIR_DB_AUXIILARY)
-    # # config.DIR_DB_AUX_IMAGES_PEOPLE directory:
-    # if not os.path.exists(config_for_flask.DIR_DB_AUX_IMAGES_PEOPLE):
-    #     os.makedirs(config_for_flask.DIR_DB_AUX_IMAGES_PEOPLE)
-    # # config.APPLE_HEALTH_DIR directory:
-    # if not os.path.exists(config_for_flask.APPLE_HEALTH_DIR):
-    #     os.makedirs(config_for_flask.APPLE_HEALTH_DIR)
-    # # config.DASHBOARD_FILES_DIR directory:
-    # if not os.path.exists(config_for_flask.DASHBOARD_FILES_DIR):
-    #     os.makedirs(config_for_flask.DASHBOARD_FILES_DIR)
-    # # config.DATA_SOURCE_FILES_DIR directory:
-    # if not os.path.exists(config_for_flask.DATA_SOURCE_FILES_DIR):
-    #     os.makedirs(config_for_flask.DATA_SOURCE_FILES_DIR)
-    # # config.DATAFRAME_FILES_DIR directory:
-    # if not os.path.exists(config_for_flask.DATAFRAME_FILES_DIR):
-    #     os.makedirs(config_for_flask.DATAFRAME_FILES_DIR)
-    # # config.DIR_DB_BLOG directory:
-    # if not os.path.exists(config_for_flask.DIR_DB_BLOG):
-    #     os.makedirs(config_for_flask.DIR_DB_BLOG)
-    # # config.DIR_DB_NEWS directory:
-    # if not os.path.exists(config_for_flask.DIR_DB_NEWS):
-    #     os.makedirs(config_for_flask.DIR_DB_NEWS)
-    # # config.DIR_DB_AUX_FILES_UTILITY directory:
-    # if not os.path.exists(config_for_flask.DIR_DB_AUX_FILES_UTILITY):
-    #     os.makedirs(config_for_flask.DIR_DB_AUX_FILES_UTILITY)
-    # # config.DIR_DB_AUX_OURA_SLEEP_RESPONSES directory:
-    # if not os.path.exists(config_for_flask.DIR_DB_AUX_OURA_SLEEP_RESPONSES):
-    #     os.makedirs(config_for_flask.DIR_DB_AUX_OURA_SLEEP_RESPONSES)
-
     ############################################################################
-    ## Build Sqlite database files
-    #Build DB_NAME_WHAT_STICKS
-    
+    ## Build Sqlite database
     if os.path.exists(os.path.join(config_for_flask.DB_ROOT,os.environ.get('DB_NAME_WHAT_STICKS'))):
         logger_init.info(f"db already exists: {os.path.join(config_for_flask.DB_ROOT,os.environ.get('DB_NAME_WHAT_STICKS'))}")
     else:
         Base.metadata.create_all(engine)
         logger_init.info(f"NEW db created: {os.path.join(config_for_flask.DB_ROOT,os.environ.get('DB_NAME_WHAT_STICKS'))}")
 
-
-    # print(f"- app.config: {dir(app.config)} -")
-    # print(f"- app.config: {app.config.items()} -")
-
     from app_package.bp_users.routes import bp_users
     from app_package.bp_oura.routes import bp_oura
     from app_package.bp_apple_health.routes import bp_apple_health
-    # from app_package.api.routes import api
 
     app.register_blueprint(bp_users)
     app.register_blueprint(bp_oura)
     app.register_blueprint(bp_apple_health)
-    # app.register_blueprint(api)
 
     return app
 
