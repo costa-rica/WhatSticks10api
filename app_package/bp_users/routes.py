@@ -190,7 +190,7 @@ def send_dashboard_table_objects(current_user):
     logger_bp_users.info(f"- accessed  send_dashboard_table_objects endpoint-")
     
     # response_list = []
-    dashboard_table_object = {}
+    # dashboard_table_object = {}
 
     # user_dashboard_json_file_name = f"Dashboard-user_id{current_user.id}.json"
     # user_sleep_dash_json_file_name = f"dt_sleep01_{current_user.id:04}.json"
