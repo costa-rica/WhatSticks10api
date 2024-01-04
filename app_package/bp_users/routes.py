@@ -189,21 +189,23 @@ def send_data_source_objects(current_user):
 def send_dashboard_table_objects(current_user):
     logger_bp_users.info(f"- accessed  send_dashboard_table_objects endpoint-")
     
-    response_list = []
+    # response_list = []
     dashboard_table_object = {}
 
     # user_dashboard_json_file_name = f"Dashboard-user_id{current_user.id}.json"
-    user_sleep_dash_json_file_name = f"dt_sleep01_{current_user.id:04}.json"
-    json_data_path_and_name = os.path.join(current_app.config.get('DASHBOARD_FILES_DIR'), user_sleep_dash_json_file_name)
+    # user_sleep_dash_json_file_name = f"dt_sleep01_{current_user.id:04}.json"
+    user_data_table_array_json_file_name = f"data_table_objects_array_{int(user_id):04}.json"
+    # json_data_path_and_name = os.path.join(current_app.config.get('DASHBOARD_FILES_DIR'), user_sleep_dash_json_file_name)
+    json_data_path_and_name = os.path.join(current_app.config.get('DASHBOARD_FILES_DIR'), user_data_table_array_json_file_name)
     logger_bp_users.info(f"- Dashboard table object file name and path: {json_data_path_and_name} -")
     try:
         with open(json_data_path_and_name,'r') as dashboard_json_file:
-            dashboard_table_object = json.load(dashboard_json_file)
-            response_list.append(dashboard_table_object)
+            dashboard_table_object_array = json.load(dashboard_json_file)
+            # response_list.append(dashboard_table_object)
     
-        logger_bp_users.info(f"- Returning dashboard_table_object list: {response_list} -")
+        logger_bp_users.info(f"- Returning dashboard_table_object list: {dashboard_table_object_array} -")
         logger_bp_users.info(f"- END send_dashboard_table_objects -")
-        return jsonify(response_list)
+        return jsonify(dashboard_table_object_array)
     except FileNotFoundError:
         error_message = f"File not found: {json_data_path_and_name}"
         logger_bp_users.error(error_message)
