@@ -194,7 +194,7 @@ def send_dashboard_table_objects(current_user):
 
     # user_dashboard_json_file_name = f"Dashboard-user_id{current_user.id}.json"
     # user_sleep_dash_json_file_name = f"dt_sleep01_{current_user.id:04}.json"
-    user_data_table_array_json_file_name = f"data_table_objects_array_{int(user_id):04}.json"
+    user_data_table_array_json_file_name = f"data_table_objects_array_{current_user.id:04}.json"
     # json_data_path_and_name = os.path.join(current_app.config.get('DASHBOARD_FILES_DIR'), user_sleep_dash_json_file_name)
     json_data_path_and_name = os.path.join(current_app.config.get('DASHBOARD_FILES_DIR'), user_data_table_array_json_file_name)
     logger_bp_users.info(f"- Dashboard table object file name and path: {json_data_path_and_name} -")
