@@ -83,7 +83,8 @@ def delete_user_data_files(current_user):
         os.remove(json_data_path_and_name)
 
     # dashboard json
-    user_sleep_dash_json_file_name = f"dt_sleep01_{current_user.id:04}.json"
+    # user_sleep_dash_json_file_name = f"dt_sleep01_{current_user.id:04}.json"
+    user_sleep_dash_json_file_name = f"data_table_objects_array_{current_user.id:04}.json"
     json_data_path_and_name = os.path.join(current_app.config.get('DASHBOARD_FILES_DIR'), user_sleep_dash_json_file_name)
     if os.path.exists(json_data_path_and_name):
         logger_bp_users.info(f"- deleted: {user_sleep_dash_json_file_name} successfully -")
