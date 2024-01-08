@@ -1,6 +1,7 @@
 from flask import Blueprint
 from flask import request, jsonify, make_response, current_app
-from ws_models import sess, Users, OuraToken, OuraSleepDescriptions, AppleHealthQuantityCategory
+from ws_models import sess, Users, OuraToken, OuraSleepDescriptions, AppleHealthQuantityCategory, \
+    UserLocationDay, Locations
 from werkzeug.security import generate_password_hash, check_password_hash #password hashing
 import bcrypt
 import datetime
@@ -12,7 +13,7 @@ import json
 import socket
 from app_package.utilsDecorators import token_required
 from app_package.bp_users.utils import send_confirm_email, delete_user_from_table, \
-    delete_user_data_files
+    delete_user_data_files, convert_lat_lon_to_timezone_string
 # from ws_analysis import corr_sleep_steps
 
 
@@ -122,9 +123,21 @@ def register():
             setattr(new_user, "password", hash_pw)
         elif key == "new_email":
             setattr(new_user, "email", request_json.get('new_email'))
+        elif key == "lat":
+            setattr(new_user, "lat", float(request_json.get('lat')))
+        elif key == "lon":
+            setattr(new_user, "lon", float(request_json.get('lon')))
+
+
+    timezone_string = convert_lat_lon_to_timezone_string(lat, lon)
+    if timezone_string != "Timezone could not be determined":
+        setattr(new_user, "timezone", timezone)
 
     sess.add(new_user)
     sess.commit()
+    # get timezone based on 
+    # check if location
+    user_location_day = UserLocationDay()
 
     if request_json.get('new_email') != "nrodrig1@gmail.com":
         send_confirm_email(request_json.get('new_email'))
