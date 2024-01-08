@@ -121,7 +121,7 @@ def convert_lat_lon_to_timezone_string(latitude, longitude):
     tf = TimezoneFinder()
 
     # Find the timezone
-    timezone_str = tf.timezone_at(lat=lat, lng=lon)
+    timezone_str = tf.timezone_at(lat=latitude, lng=longitude)
 
     # Check if the timezone is found
     if timezone_str:
