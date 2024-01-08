@@ -79,6 +79,7 @@ def login():
             user_object_for_swift_app['username'] = user.username
             user_object_for_swift_app['password'] = "test"
             user_object_for_swift_app['token'] = serializer.dumps({'user_id': user.id})
+            user_object_for_swift_app['timezone'] = user.timezone
             oura_token_obj = sess.query(OuraToken).filter_by(user_id=user.id).first()
             if oura_token_obj and oura_token_obj.token is not None:
                 user_object_for_swift_app['oura_token'] = oura_token_obj.token
@@ -140,9 +141,6 @@ def register():
 
     sess.add(new_user)
     sess.commit()
-    # get timezone based on 
-    # check if location
-    user_location_day = UserLocationDay()
 
     if request_json.get('new_email') != "nrodrig1@gmail.com":
         send_confirm_email(request_json.get('new_email'))
@@ -201,7 +199,6 @@ def send_data_source_objects(current_user):
         return jsonify({"error": "An unexpected error occurred"}), 500
 
 
-
 @bp_users.route('/send_dashboard_table_objects', methods=['POST'])
 @token_required
 def send_dashboard_table_objects(current_user):
@@ -236,7 +233,6 @@ def send_dashboard_table_objects(current_user):
         return jsonify({"error": "An unexpected error occurred"}), 500
 
 
-        
 # this get's sent at login
 @bp_users.route('/delete_user', methods=['POST'])
 @token_required
@@ -288,3 +284,29 @@ def delete_user(current_user):
 
     logger_bp_users.info(f"- response_dict: {response_dict} -")
     return jsonify(response_dict)
+
+@bp_users.route('/update_user', methods=['POST'])
+@token_required
+def update_user(current_user):
+    logger_bp_users.info(f"- register endpoint pinged -")
+    # ws_api_password = request.json.get('WS_API_PASSWORD')
+    logger_bp_users.info(request.json)
+    # if current_app.config.get('WS_API_PASSWORD') == ws_api_password:
+    try:
+        request_json = request.json
+        logger_bp_users.info(f"request_json: {request_json}")
+    except Exception as e:
+        logger_bp_users.info(f"failed to read json, error: {e}")
+        response = jsonify({"error": str(e)})
+        return make_response(response, 400)
+
+    current_user.timezone = request_json.get("timezone")
+    sess.commit()
+
+    response_dict = {}
+    response_dict["message"] = f"updated user timezone to : {request_json.get('timezone')}"
+    # response_dict["id"] = f"{new_user.id}"
+    # response_dict["username"] = f"{new_user.username}"
+
+    return jsonify(response_dict)
+
