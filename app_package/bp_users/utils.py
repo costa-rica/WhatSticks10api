@@ -114,8 +114,8 @@ def delete_user_from_table(current_user, table):
 
 def convert_lat_lon_to_timezone_string(latitude, longitude):
     # Convert latitude and longitude to float
-    lat = float(latitude)
-    lon = float(longitude)
+    # lat = float(latitude)
+    # lon = float(longitude)
 
     # Create a TimezoneFinder object
     tf = TimezoneFinder()

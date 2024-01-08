@@ -118,15 +118,20 @@ def register():
     hash_pw = bcrypt.hashpw(request_json.get('new_password').encode(), salt)
     new_user = Users()
 
+    lat = 999.999
+    lon = 999.999
+
     for key, value in request_json.items():
         if key == "new_password":
             setattr(new_user, "password", hash_pw)
         elif key == "new_email":
             setattr(new_user, "email", request_json.get('new_email'))
         elif key == "lat":
-            setattr(new_user, "lat", float(request_json.get('lat')))
+            lat = float(request_json.get('lat'))
+            setattr(new_user, "lat", lat)
         elif key == "lon":
-            setattr(new_user, "lon", float(request_json.get('lon')))
+            lon = float(request_json.get('lon'))
+            setattr(new_user, "lon", lon)
 
 
     timezone_string = convert_lat_lon_to_timezone_string(lat, lon)
