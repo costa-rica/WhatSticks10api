@@ -136,7 +136,7 @@ def register():
 
     timezone_string = convert_lat_lon_to_timezone_string(lat, lon)
     if timezone_string != "Timezone could not be determined":
-        setattr(new_user, "timezone", timezone)
+        setattr(new_user, "timezone", timezone_string)
 
     sess.add(new_user)
     sess.commit()
