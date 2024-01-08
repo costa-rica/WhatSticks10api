@@ -304,7 +304,7 @@ def update_user(current_user):
     sess.commit()
 
     response_dict = {}
-    response_dict["message"] = f"updated user timezone to : {request_json.get('timezone')}"
+    response_dict["message"] = f"Updated user timezone to {request_json.get('timezone')}"
     # response_dict["id"] = f"{new_user.id}"
     # response_dict["username"] = f"{new_user.username}"
 
