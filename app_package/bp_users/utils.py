@@ -113,17 +113,14 @@ def delete_user_from_table(current_user, table):
 
 
 def convert_lat_lon_to_timezone_string(latitude, longitude):
-    # Convert latitude and longitude to float
-    # lat = float(latitude)
-    # lon = float(longitude)
-
-    # Create a TimezoneFinder object
+    # Note: latitude and longitude must be float
     tf = TimezoneFinder()
-
-    # Find the timezone
-    timezone_str = tf.timezone_at(lat=latitude, lng=longitude)
-
-
+    try:
+        # Find the timezone
+        timezone_str = tf.timezone_at(lat=latitude, lng=longitude)
+    except Exception as e:
+        logger_bp_users.info(f"-- Timezone threw Exception, e: {e} \n\n setting to timezone: Etc/GMT --")
+        timezone_str = "Etc/GMT"
 
     # Check if the timezone is found
     if timezone_str:
@@ -131,4 +128,5 @@ def convert_lat_lon_to_timezone_string(latitude, longitude):
         return timezone_str
     else:
         logger_bp_users.info(f"-- Timezone could not be determined, timezone_str: {timezone_str} --")
-        return "Timezone could not be determined"
+        # return "Timezone could not be determined"
+        return "Etc/GMT"
