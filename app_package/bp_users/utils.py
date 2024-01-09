@@ -123,8 +123,12 @@ def convert_lat_lon_to_timezone_string(latitude, longitude):
     # Find the timezone
     timezone_str = tf.timezone_at(lat=latitude, lng=longitude)
 
+
+
     # Check if the timezone is found
     if timezone_str:
+        logger_bp_users.info(f"-- found timezone: {timezone_str} --")
         return timezone_str
     else:
+        logger_bp_users.info(f"-- Timezone could not be determined, timezone_str: {timezone_str} --")
         return "Timezone could not be determined"
