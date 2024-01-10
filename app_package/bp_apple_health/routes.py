@@ -86,16 +86,12 @@ def receive_apple_qty_cat_data(current_user):
     # last chunk
     last_chunk = request_json.get("last_chunk") == "True"
     # filename example: AppleHealthQuantityCategory-user_id1-20231229-1612.json
-    # let filename = "AppleHealthQuantityCategory-user_id\(userId)-\(dateStringTimeStamp).json"
-    # apple_health_data_request_json_file_name = request_json.get("filename")
-    # apple_health_data_request_json_file_name = request_json.get("dateStringTimeStamp")
     time_stamp_str_for_json_file_name = request_json.get("dateStringTimeStamp")
     apple_health_data_json = request_json.get("arryAppleHealthQuantityCategory")
     count_of_entries_sent_by_ios = len(apple_health_data_json)
 
     # timestamp = datetime.now().strftime('%Y%m%d-%H%M')
     # apple_health_data_request_json_file_name = f"AppleHealth-user_id{current_user.id}-{timestamp}.json"
-    # apple_health_data_request_json_file_name = f"{current_app.config.get('APPLE_HEALTH_QUANTITY_CATEGORY_FILENAME_PREFIX')}-user_id{current_user.id}-{time_stamp_str_for_apple_health_data_request_json_file_name}.json"
     apple_health_qty_cat_json_filename_str = apple_health_qty_cat_json_filename(current_user.id, time_stamp_str_for_json_file_name)
     json_data_path_and_name = os.path.join(current_app.config.get('APPLE_HEALTH_DIR'),apple_health_qty_cat_json_filename_str)
 
@@ -131,7 +127,8 @@ def receive_apple_qty_cat_data(current_user):
         logger_bp_apple_health.info(f"- user_id string passed to subprocess: {user_id_string} -")
 
         # Filename and path to subproces (WSAS)
-        path_sub = os.path.join(current_app.config.get('APPLE_SERVICE_ROOT'), 'apple_health_service.py')
+        # path_sub = os.path.join(current_app.config.get('APPLE_SERVICE_ROOT'), 'apple_health_service.py')
+        path_sub = os.path.join(current_app.config.get('APPLE_SERVICE_11_ROOT'), 'send_job.py')
 
         if count_of_entries_sent_by_ios == 0:
             logger_bp_apple_health.info(f"- Not processing count_of_entries_sent_by_ios == 0: -")
@@ -145,7 +142,6 @@ def receive_apple_qty_cat_data(current_user):
 
         # elif count_of_entries_sent_by_ios > 4000:
         else:
-            # logger_bp_apple_health.info(f"- processing via WSAS, elif count_of_entries_sent_by_ios > 4000:-")
             logger_bp_apple_health.info(f"- processing via WSAS -")
             response_dict = {
                 'message': "No data sent",
@@ -153,17 +149,8 @@ def receive_apple_qty_cat_data(current_user):
             }
 
             # run WSAS subprocess
-            # process = subprocess.Popen(['python', path_sub, user_id_string, apple_health_data_request_json_file_name, 'True', 'True'])
             process = subprocess.Popen(['python', path_sub, user_id_string, time_stamp_str_for_json_file_name, 'True', 'True'])
             logger_bp_apple_health.info(f"---> successfully started subprocess PID:: {process.pid} -")
-
-        # else:
-        #     logger_bp_apple_health.info(f"- processing via API elif count_of_entries_sent_by_ios < 4000:-")
-        #     response_dict = add_apple_health_to_database(current_user.id, apple_health_data_request_json_file_name)
-        #     count_of_records_added_to_db = response_dict.get('count_of_added_records')
-        #     # run WSAS subprocess for correlation (i.e. dashboard json file only)
-        #     # process = subprocess.Popen(['python', path_sub, user_id_string, apple_health_data_request_json_file_name, 'False', 'True',count_of_records_added_to_db])
-        #     process = subprocess.Popen(['python', path_sub, user_id_string, time_stamp_str_for_apple_health_data_request_json_file_name, 'False', 'True',count_of_records_added_to_db])
 
         logger_bp_apple_health.info(f"---> WSAPI > receive_apple_health_data respone for <-----")
         logger_bp_apple_health.info(f"{response_dict}")
