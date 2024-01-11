@@ -10,6 +10,7 @@ from logging.handlers import RotatingFileHandler
 # from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from timezonefinder import TimezoneFinder
 import pytz
+import pandas as pd
 
 
 #Setting up Logger
