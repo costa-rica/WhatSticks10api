@@ -135,8 +135,8 @@ def convert_lat_lon_to_timezone_string(latitude, longitude):
 def get_apple_health_count_date(user_id):
     user_apple_qty_cat_dataframe_pickle_file_name = f"user_{int(user_id):04}_apple_health_dataframe.pkl"
     user_apple_workouts_dataframe_pickle_file_name = f"user_{int(user_id):04}_apple_workouts_dataframe.pkl"
-    pickle_data_path_and_name_qty_cat = os.path.join(config.DATAFRAME_FILES_DIR, user_apple_qty_cat_dataframe_pickle_file_name)
-    pickle_data_path_and_name_workouts = os.path.join(config.DATAFRAME_FILES_DIR, user_apple_workouts_dataframe_pickle_file_name)
+    pickle_data_path_and_name_qty_cat = os.path.join(current_app.config.get('DATAFRAME_FILES_DIR'), user_apple_qty_cat_dataframe_pickle_file_name)
+    pickle_data_path_and_name_workouts = os.path.join(current_app.config.get('DATAFRAME_FILES_DIR'), user_apple_workouts_dataframe_pickle_file_name)
     df_apple_qty_cat = pd.read_pickle(pickle_data_path_and_name_qty_cat)
     df_apple_workouts = pd.read_pickle(pickle_data_path_and_name_workouts)
 
