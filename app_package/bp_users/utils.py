@@ -130,3 +130,35 @@ def convert_lat_lon_to_timezone_string(latitude, longitude):
         logger_bp_users.info(f"-- Timezone could not be determined, timezone_str: {timezone_str} --")
         # return "Timezone could not be determined"
         return "Etc/GMT"
+
+
+def get_apple_health_count_date(user_id):
+    user_apple_qty_cat_dataframe_pickle_file_name = f"user_{int(user_id):04}_apple_health_dataframe.pkl"
+    user_apple_workouts_dataframe_pickle_file_name = f"user_{int(user_id):04}_apple_workouts_dataframe.pkl"
+    pickle_data_path_and_name_qty_cat = os.path.join(config.DATAFRAME_FILES_DIR, user_apple_qty_cat_dataframe_pickle_file_name)
+    pickle_data_path_and_name_workouts = os.path.join(config.DATAFRAME_FILES_DIR, user_apple_workouts_dataframe_pickle_file_name)
+    df_apple_qty_cat = pd.read_pickle(pickle_data_path_and_name_qty_cat)
+    df_apple_workouts = pd.read_pickle(pickle_data_path_and_name_workouts)
+
+    # get count of qty_cat and workouts
+    apple_health_record_count = "{:,}".format(len(df_apple_qty_cat) + len(df_apple_workouts))
+
+    # Convert startDate to datetime
+    df_apple_qty_cat['startDate'] = pd.to_datetime(df_apple_qty_cat['startDate'])
+    earliest_date_qty_cat = df_apple_qty_cat['startDate'].min()
+
+    df_apple_workouts['startDate'] = pd.to_datetime(df_apple_workouts['startDate'])
+    earliest_date_workouts = df_apple_workouts['startDate'].min()
+    earliest_date_str = ""
+    if earliest_date_workouts < earliest_date_qty_cat:
+        # formatted_date_workouts = earliest_date_workouts.strftime('%b %d, %Y')
+        # print(f"workouts are older: {formatted_date_workouts}")
+        earliest_date_str = earliest_date_workouts.strftime('%b %d, %Y')
+    else:
+        # formatted_date_qty_cat = earliest_date_qty_cat.strftime('%b %d, %Y')
+        # print(f"qty_cat are older: {formatted_date_qty_cat}")
+        earliest_date_str = earliest_date_qty_cat.strftime('%b %d, %Y')
+
+    return apple_health_record_count, earliest_date_str
+
+
