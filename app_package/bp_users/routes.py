@@ -177,11 +177,11 @@ def send_data_source_objects(current_user):
             logger_bp_users.info(f"File not found: {json_data_path_and_name}")
             #get user's oura record count
             # keys to data_source_object_oura must match WSiOS DataSourceObject
-            data_source_object_oura={}
-            data_source_object_oura['name']="Oura Ring"
-            record_count_oura = sess.query(OuraSleepDescriptions).filter_by(user_id=current_user.id).all()
-            data_source_object_oura['recordCount']="{:,}".format(len(record_count_oura))
-            list_data_source_objects.append(data_source_object_oura)
+            # data_source_object_oura={}
+            # data_source_object_oura['name']="Oura Ring"
+            # record_count_oura = sess.query(OuraSleepDescriptions).filter_by(user_id=current_user.id).all()
+            # data_source_object_oura['recordCount']="{:,}".format(len(record_count_oura))
+            # list_data_source_objects.append(data_source_object_oura)
 
             #get user's apple health record count
             # keys to data_source_object_apple_health must match WSiOS DataSourceObject
