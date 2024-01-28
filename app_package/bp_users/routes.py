@@ -137,11 +137,9 @@ def register():
 
 
     timezone_string = convert_lat_lon_to_timezone_string(lat, lon)
+    # defaults to "Etc/GMT"
     if timezone_string != "Timezone could not be determined":
         setattr(new_user, "timezone", timezone_string)
-    else:# default Europe/Paris
-        setattr(new_user, "timezone", "Europe/Paris")
-    
 
     sess.add(new_user)
     sess.commit()
