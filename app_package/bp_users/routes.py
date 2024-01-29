@@ -315,3 +315,44 @@ def update_user(current_user):
 
     return jsonify(response_dict)
 
+
+
+@bp_users.route('/reset_password', methods = ["GET", "POST"])
+def reset_password():
+
+    logger_bp_users.info(f"- reset_password endpoint pinged -")
+    logger_bp_users.info(request.json)
+    try:
+        request_json = request.json
+        logger_bp_users.info(f"request_json: {request_json}")
+    except Exception as e:
+        logger_bp_users.info(f"failed to read json, error: {e}")
+        response = jsonify({"error": str(e)})
+        return make_response(response, 400)
+
+    # user_exists = sess.query(Users).filter_by(email= request_json.get('new_email')).first()
+
+    # if user_exists == None:
+    #     return jsonify({"message": f"User already exists"})
+
+
+    if request.method == 'POST':
+        formDict = request.form.to_dict()
+        email = formDict.get('email')
+        user = sess.query(Users).filter_by(email=email).first()
+        if user:
+        # send_reset_email(user)
+            logger_bp_users.info('Email reaquested to reset: ', email)
+            send_reset_email(user)
+
+            response_dict = {}
+            response_dict["message"] = f"email sent to: {request_json.get('new_email')} with reset information"
+            return jsonify(response_dict)
+
+        else:
+            response_dict = {}
+            response_dict["message"] = f"The email you entered has no account with What Sticks"
+            return jsonify(response_dict)
+
+
+
