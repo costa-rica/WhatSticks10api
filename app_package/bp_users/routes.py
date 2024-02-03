@@ -293,7 +293,7 @@ def delete_user(current_user):
 @bp_users.route('/update_user', methods=['POST'])
 @token_required
 def update_user(current_user):
-    logger_bp_users.info(f"- register endpoint pinged -")
+    logger_bp_users.info(f"- update_user endpoint pinged -")
     # ws_api_password = request.json.get('WS_API_PASSWORD')
     logger_bp_users.info(request.json)
     # if current_app.config.get('WS_API_PASSWORD') == ws_api_password:
@@ -305,11 +305,19 @@ def update_user(current_user):
         response = jsonify({"error": str(e)})
         return make_response(response, 400)
 
-    current_user.timezone = request_json.get("timezone")
+    # current_user.timezone = request_json.get("timezone")
+    # sess.commit()
+    logger_bp_users.info(f"- User info to update: -")
+    logger_bp_users.info(f"- location_permission: {request_json.get('location_permission')} -")
+    logger_bp_users.info(f"- latitude: {request_json.get('latitude')} -")
+    logger_bp_users.info(f"- longitude: {request_json.get('longitude')} -")
+
+    current_user.location_permission = request_json.get('location_permission') == 'True'
     sess.commit()
 
     response_dict = {}
-    response_dict["message"] = f"Updated user timezone to {request_json.get('timezone')}"
+    # response_dict["message"] = f"Updated user timezone to {request_json.get('timezone')}"
+    response_dict["message"] = f"Updated user latitude and longituede in UserLocDay Table to {request_json.get('latitude')}"
     # response_dict["id"] = f"{new_user.id}"
     # response_dict["username"] = f"{new_user.username}"
 
