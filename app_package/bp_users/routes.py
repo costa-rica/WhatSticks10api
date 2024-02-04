@@ -81,12 +81,12 @@ def login():
             user_object_for_swift_app['password'] = "test"
             user_object_for_swift_app['token'] = serializer.dumps({'user_id': user.id})
             user_object_for_swift_app['timezone'] = user.timezone
-            user_object_for_swift_app['location_permission'] = user.location_permission
+            user_object_for_swift_app['location_permission'] = str(user.location_permission)
             oura_token_obj = sess.query(OuraToken).filter_by(user_id=user.id).first()
             if oura_token_obj and oura_token_obj.token is not None:
                 user_object_for_swift_app['oura_token'] = oura_token_obj.token
 
-            user_object_for_swift_app['admin'] = True
+            # user_object_for_swift_app['admin'] = True
 
             logger_bp_users.info(f"- user_object_for_swift_app: {user_object_for_swift_app} -")
             return jsonify(user_object_for_swift_app)
