@@ -1,6 +1,6 @@
 from flask import current_app, url_for
 import json
-from ws_models import sess, Users
+from ws_models import sess, Users, Locations
 from flask_mail import Message
 from app_package import mail
 import os
@@ -11,6 +11,7 @@ from logging.handlers import RotatingFileHandler
 from timezonefinder import TimezoneFinder
 import pytz
 import pandas as pd
+import requests
 
 
 #Setting up Logger
@@ -131,6 +132,60 @@ def convert_lat_lon_to_timezone_string(latitude, longitude):
         logger_bp_users.info(f"-- Timezone could not be determined, timezone_str: {timezone_str} --")
         # return "Timezone could not be determined"
         return "Etc/GMT"
+
+def convert_lat_lon_to_city_country(latitude, longitude):
+    # url = f"https://nominatim.openstreetmap.org/reverse?lat={latitude}&lon={longitude}&format=json"
+    url = f"{current_app.config.get('NOMINATIM_API_URL')}/reverse?lat={latitude}&lon={longitude}&format=json"
+
+    # Send the request
+    response = requests.get(url, headers={"User-Agent": "What Sticks"})
+
+    # Parse the JSON response
+    data = response.json()
+
+    # Extract city and country
+    city = data.get('address', {}).get('city', 'Not found')
+    country = data.get('address', {}).get('country', 'Not found')
+    state = data.get('address', {}).get('state', 'Not found')
+    boundingbox = data.get('boundingbox', 'Not found')
+    lat = data.get('lat', 'Not found')
+    lon = data.get('lon', 'Not found')
+
+    location_dict = {
+        "city": city, "country":country, "state":state,"boundingbox":boundingbox,
+        "lat":lat,"lon":lon
+    }
+
+    return location_dict
+
+
+def find_user_location(user_latitude: float, user_longitude: float) -> str:
+    print("find_user_location")
+    # Query all locations from the database
+    locations = sess.query(Locations).all()
+    
+    for location in locations:
+        print(f"Checking {location.city}")
+        # Assuming boundingbox format is [min_lat, max_lat, min_lon, max_lon]
+        boundingbox = location.boundingbox
+        min_lat, max_lat, min_lon, max_lon = boundingbox
+        
+        # add buffer
+        min_lat = min_lat - 0.15
+        max_lat = max_lat + 0.15
+        min_lon = min_lon - 0.25
+        max_lon = max_lon + 0.25
+        # NOTE: Buffer magnitude in kilometers:
+        # - 0.15 lat is approx 16.5km
+        # - 0.25 lon is approx 20km
+
+        # Check if user's coordinates are within the bounding box
+        if min_lat <= user_latitude <= max_lat and min_lon <= user_longitude <= max_lon:
+            print(f"*** Found coords in location: {location.city}")
+            return str(location.id)  # Return the location ID if within the bounding box
+    
+    return "no_location_found"  # Return this if no location matches the user's coordinates
+
 
 
 def get_apple_health_count_date(user_id):
