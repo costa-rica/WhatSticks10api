@@ -79,7 +79,8 @@ def login():
             user_object_for_swift_app['id'] = str(user.id)
             user_object_for_swift_app['email'] = user.email
             user_object_for_swift_app['username'] = user.username
-            user_object_for_swift_app['password'] = "test"
+            # cannot return password because it is encrypted
+            # user_object_for_swift_app['password'] = "test"
             user_object_for_swift_app['token'] = serializer.dumps({'user_id': user.id})
             user_object_for_swift_app['timezone'] = user.timezone
             user_object_for_swift_app['location_permission'] = str(user.location_permission)
@@ -110,14 +111,30 @@ def register():
         logger_bp_users.info(f"failed to read json, error: {e}")
         response = jsonify({"error": str(e)})
         return make_response(response, 400)
+    
+    response_dict = {}
+
+    ######################################################################################
+    ## NOTE: In case of emergency you can activate this  response to reject any new users
+    ######################################################################################
+    # response_dict["alert_title"] = f"Cannot receive new users"
+    # response_dict["alert_message"] = f"Due to lack of resources we cannot full fill this request. Database full. \n\n We appreciate your patience while we figure things out."
+    # print(response_dict)
+    # return jsonify(response_dict)
+    ######################################################################################
 
     if request_json.get('new_email') in ("", None) or request_json.get('new_password') in ("" , None):
-        return jsonify({"message": f"User must have email and password"})
+        # return jsonify({"message": f"User must have email and password"})
+        response_dict["alert_title"] = f"User must have email and password"
+        response_dict["alert_message"] = f""
+        return jsonify(response_dict)
 
     user_exists = sess.query(Users).filter_by(email= request_json.get('new_email')).first()
 
     if user_exists:
-        return jsonify({"message": f"User already exists"})
+        response_dict["alert_title"] = f"User already exists"
+        response_dict["alert_message"] = f"Try loggining in"
+        return jsonify(response_dict)
 
     hash_pw = bcrypt.hashpw(request_json.get('new_password').encode(), salt)
     new_user = Users()
@@ -153,7 +170,8 @@ def register():
     response_dict["message"] = f"new user created: {request_json.get('new_email')}"
     response_dict["id"] = f"{new_user.id}"
     response_dict["username"] = f"{new_user.username}"
-
+    response_dict["alert_title"] = f"Sucess!"
+    response_dict["alert_message"] = f""
 
     return jsonify(response_dict)
 
