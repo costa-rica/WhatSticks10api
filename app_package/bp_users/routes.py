@@ -66,11 +66,6 @@ def login():
     if not user:
         return make_response('Could not verify - user not found', 401)
 
-    # logger_bp_users.info(f"- checking password -")
-    # logger_bp_users.info(f"- password: {auth.password.encode()} -")
-    # logger_bp_users.info(f"- password: {bcrypt.checkpw(auth.password.encode(), user.password)} -")
-
-
     if auth.password:
         if bcrypt.checkpw(auth.password.encode(), user.password):
             serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
@@ -84,18 +79,15 @@ def login():
             user_object_for_swift_app['token'] = serializer.dumps({'user_id': user.id})
             user_object_for_swift_app['timezone'] = user.timezone
             user_object_for_swift_app['location_permission'] = str(user.location_permission)
+            user_object_for_swift_app['location_reoccuring_permission'] = str(user.location_reoccuring_permission)
             oura_token_obj = sess.query(OuraToken).filter_by(user_id=user.id).first()
             if oura_token_obj and oura_token_obj.token is not None:
                 user_object_for_swift_app['oura_token'] = oura_token_obj.token
-
-            # user_object_for_swift_app['admin'] = True
 
             logger_bp_users.info(f"- user_object_for_swift_app: {user_object_for_swift_app} -")
             return jsonify(user_object_for_swift_app)
 
     return make_response('Could not verify', 401)
-    # else:
-    #     return make_response('Could note verify sender', 401)
 
 
 @bp_users.route('/register', methods=['POST'])
@@ -391,6 +383,25 @@ def update_user_location_with_lat_lon(current_user):
         response = jsonify({"error": str(e)})
         return make_response(response, 400)
 
+    #update permission
+    location_permission = request_json.get('location_permission') == "True"
+    location_reoccuring_permission = request_json.get('location_reoccuring_permission') == "True"
+
+    current_user.location_permission=location_permission
+    current_user.location_reoccuring_permission=location_reoccuring_permission
+    sess.commit()
+
+    response_dict = {}
+
+    #if permission granted:
+    # this is conveservative, perhaps use location_permission?
+    if not location_reoccuring_permission:
+
+        response_dict["message"] = f"Removed user location tracking"
+
+        return jsonify(response_dict)
+
+
     user_lat = float(request_json.get('latitude'))
     user_lon = float(request_json.get('longitude'))
 
@@ -419,7 +430,7 @@ def update_user_location_with_lat_lon(current_user):
 
         logger_bp_users.info(f"- added new {city}, {country} to Locations: {lon} -")
 
-    response_dict = {}
+    
 
     new_user_loc_day = UserLocationDay(user_id=current_user.id, location_id = user_location_id,
                                         date_time_user_checkin_utc = datetime.datetime.utcnow())
@@ -431,4 +442,24 @@ def update_user_location_with_lat_lon(current_user):
     response_dict["message"] = f"Updated user location in UserLocDay Table with {user_location.city}, {user_location.country}"
 
     return jsonify(response_dict)
+
+
+
+
+@bp_users.route('/update_user_location_with_user_location_json', methods=["POST"])
+@token_required
+def update_user_location_with_user_location_json(current_user):
+    logger_bp_users.info(f"- update_user_location_with_user_location_json endpoint pinged -")
+    try:
+        request_json = request.json
+        logger_bp_users.info(f"request_json: {request_json}")
+    except Exception as e:
+        logger_bp_users.info(f"failed to read json, error: {e}")
+        response = jsonify({"error": str(e)})
+        return make_response(response, 400)
+
+    user_location_list_of_lists = request_json.get('user_location')
+    user_loction_filename = f"Location_lists-user_id{user_id}-{timestamp_str}.json"
+    json_data_path_and_name = os.path.join(current_app.config.get('DATABASE_HELPER_FILES'),apple_health_qty_cat_json_filename_str)
+
 
