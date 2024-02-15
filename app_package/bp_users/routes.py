@@ -84,7 +84,8 @@ def login():
             # last_Location = sess.query(UserLocationDay).filter_by(user_id=user.id)
             latest_entry = sess.query(UserLocationDay).filter(UserLocationDay.user_id == 1) \
                             .order_by(desc(UserLocationDay.date_time_utc_user_check_in)).first()
-            user_object_for_swift_app['last_location_date'] = str(latest_entry.date_time_utc_user_check_in)[:10]
+            if latest_entry != None:
+                user_object_for_swift_app['last_location_date'] = str(latest_entry.date_time_utc_user_check_in)[:10]
             oura_token_obj = sess.query(OuraToken).filter_by(user_id=user.id).first()
             if oura_token_obj and oura_token_obj.token is not None:
                 user_object_for_swift_app['oura_token'] = oura_token_obj.token
