@@ -16,7 +16,7 @@ from app_package.bp_users.utils import send_confirm_email, delete_user_from_tabl
     delete_user_data_files, convert_lat_lon_to_timezone_string, \
     convert_lat_lon_to_city_country, find_user_location, \
     get_apple_health_count_date
-# from ws_analysis import corr_sleep_steps
+from sqlalchemy import desc
 
 
 formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
@@ -80,9 +80,15 @@ def login():
             user_object_for_swift_app['timezone'] = user.timezone
             user_object_for_swift_app['location_permission'] = str(user.location_permission)
             user_object_for_swift_app['location_reoccuring_permission'] = str(user.location_reoccuring_permission)
+            
+            # last_Location = sess.query(UserLocationDay).filter_by(user_id=user.id)
+            latest_entry = sess.query(UserLocationDay).filter(UserLocationDay.user_id == 1) \
+                            .order_by(desc(UserLocationDay.date_time_utc_user_check_in)).first()
+            user_object_for_swift_app['last_location_date'] = str(latest_entry.date_time_utc_user_check_in)[:10]
             oura_token_obj = sess.query(OuraToken).filter_by(user_id=user.id).first()
             if oura_token_obj and oura_token_obj.token is not None:
                 user_object_for_swift_app['oura_token'] = oura_token_obj.token
+            
 
             logger_bp_users.info(f"- user_object_for_swift_app: {user_object_for_swift_app} -")
             return jsonify(user_object_for_swift_app)
@@ -369,8 +375,6 @@ def reset_password():
             response_dict["message"] = f"The email you entered has no account with What Sticks"
             return jsonify(response_dict)
 
-
-
 @bp_users.route('/update_user_location_with_lat_lon', methods=["POST"])
 @token_required
 def update_user_location_with_lat_lon(current_user):
@@ -396,19 +400,27 @@ def update_user_location_with_lat_lon(current_user):
     #if permission granted:
     # this is conveservative, perhaps use location_permission?
     if not location_reoccuring_permission:
-
         response_dict["message"] = f"Removed user location tracking"
-
         return jsonify(response_dict)
 
+    if 'latitude' not in request_json.keys():
+        print("- no latitude but reoccuring set to True")
+        response_dict["message"] = f"Updated status to reoccuring data collection"
+        return jsonify(response_dict)
 
     user_lat = float(request_json.get('latitude'))
     user_lon = float(request_json.get('longitude'))
 
+    timezone_str = convert_lat_lon_to_timezone_string(user_lat, user_lon)
+    current_user.lat = user_lat
+    current_user.lon = user_lon
+    current_user.timezone = timezone_str
+    sess.commit()
+
     user_location_id = find_user_location(user_lat, user_lon)
 
     if user_location_id == "no_location_found":
-        timezone_str = convert_lat_lon_to_timezone_string(user_lat, user_lon)
+        # timezone_str = convert_lat_lon_to_timezone_string(user_lat, user_lon)
         location_dict = convert_lat_lon_to_city_country(user_lat, user_lon)
         city = location_dict.get('city', 'Not found')
         country = location_dict.get('country', 'Not found')
@@ -433,16 +445,16 @@ def update_user_location_with_lat_lon(current_user):
     
 
     new_user_loc_day = UserLocationDay(user_id=current_user.id, location_id = user_location_id,
-                                        date_time_user_checkin_utc = datetime.datetime.utcnow())
+                                        date_time_utc_user_check_in = datetime.datetime.utcnow())
     sess.add(new_user_loc_day)
     sess.commit()
 
     user_location = sess.get(Locations, user_location_id)
 
     response_dict["message"] = f"Updated user location in UserLocDay Table with {user_location.city}, {user_location.country}"
-
+    print("returning 404")
+    # return 404
     return jsonify(response_dict)
-
 
 
 
@@ -459,7 +471,17 @@ def update_user_location_with_user_location_json(current_user):
         return make_response(response, 400)
 
     user_location_list_of_lists = request_json.get('user_location')
-    user_loction_filename = f"Location_lists-user_id{user_id}-{timestamp_str}.json"
-    json_data_path_and_name = os.path.join(current_app.config.get('DATABASE_HELPER_FILES'),apple_health_qty_cat_json_filename_str)
+    timestamp_str = request_json.get('timestamp_utc')
+    user_loction_filename = f"Location_lists-user_id{current_user.id}-{timestamp_str}.json"
+    json_data_path_and_name = os.path.join(current_app.config.get('USER_LOCATION_JSON'),user_loction_filename)
 
+    with open(json_data_path_and_name, 'w') as file:
+        json.dump(user_location_list_of_lists, file, indent=4)
+    
+    logger_bp_users.info(f"- wrote {user_loction_filename} (user_location.json file from iOS) -")
 
+    response_dict = {}
+
+    response_dict["message"] = f"Sent user location .json data"
+
+    return jsonify(response_dict)

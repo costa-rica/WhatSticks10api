@@ -56,6 +56,7 @@ def create_app(config_for_flask = config):
     create_folder(config_for_flask.APPLE_HEALTH_DIR)
     create_folder(config_for_flask.DATAFRAME_FILES_DIR)
     create_folder(config_for_flask.OURA_SLEEP_RESPONSES)
+    create_folder(config_for_flask.USER_LOCATION_JSON)
     # ios helper files
     create_folder(config_for_flask.WS_IOS_HELPER_FILES)
     create_folder(config_for_flask.DASHBOARD_FILES_DIR)
