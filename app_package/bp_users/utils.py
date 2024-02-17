@@ -12,6 +12,8 @@ from timezonefinder import TimezoneFinder
 import pytz
 import pandas as pd
 import requests
+from datetime import datetime 
+from ws_models import sess, UserLocationDay, Locations
 
 
 #Setting up Logger
@@ -115,6 +117,8 @@ def delete_user_from_table(current_user, table):
 
 
 def convert_lat_lon_to_timezone_string(latitude, longitude):
+    latitude = float(latitude)
+    longitude = float(longitude)
     # Note: latitude and longitude must be float
     tf = TimezoneFinder()
     try:
@@ -158,12 +162,12 @@ def convert_lat_lon_to_city_country(latitude, longitude):
 
     return location_dict
 
-
-def find_user_location(user_latitude: float, user_longitude: float) -> str:
-    print("find_user_location")
+def find_user_location(user_latitude, user_longitude) -> str:
+    logger_bp_users.info("bp_users/utils find_user_location --> Searching for location_id")
     # Query all locations from the database
     locations = sess.query(Locations).all()
-    
+    user_latitude = float(user_latitude)
+    user_longitude = float(user_longitude)
     for location in locations:
         print(f"Checking {location.city}")
         # Assuming boundingbox format is [min_lat, max_lat, min_lon, max_lon]
@@ -178,14 +182,82 @@ def find_user_location(user_latitude: float, user_longitude: float) -> str:
         # NOTE: Buffer magnitude in kilometers:
         # - 0.15 lat is approx 16.5km
         # - 0.25 lon is approx 20km
+        
+        
+        if location.city == "San Francisco":
+            print("---------------------")
+            if min_lat <= user_latitude <= max_lat:
+                print("*** found latitude! *")
+            else:
+                print(f"min_lat: {min_lat}")
+                print(f"user_latitude: {user_latitude}")
+                print(f"max_lat: {max_lat}")
+            if min_lon <= user_longitude <= max_lon:
+                print("*** found user_longitude! *")
+            else:
+                print(f"min_lon: {min_lon}")
+                print(f"user_longitude: {user_longitude}")
+                print(f"max_lon: {max_lon}")
+
+            print("---------------------")
 
         # Check if user's coordinates are within the bounding box
         if min_lat <= user_latitude <= max_lat and min_lon <= user_longitude <= max_lon:
-            print(f"*** Found coords in location: {location.city}")
-            return str(location.id)  # Return the location ID if within the bounding box
-    
+            logger_bp_users.info(f"- Found coords in location: {location.city}")
+            # return str(location.id)  # Return the location ID if within the bounding box
+            return location.id  # Return the location ID if within the bounding box
+    logger_bp_users.info(f"- Did NOT fined coords in location")
     return "no_location_found"  # Return this if no location matches the user's coordinates
 
+def add_user_loc_day_process(user_id,latitude, longitude, dateTimeUtc):
+    location_id = find_user_location(latitude, longitude)
+    # if isinstance(location_id, int):
+    #     logger_bp_users.info(f"location_id: {location_id}")
+
+    # if location_id == "no_location_found":
+    if isinstance(location_id, str):
+        # user_lat=location.get('latitude')
+        # user_lon=location.get('longitude')
+        timezone_str = convert_lat_lon_to_timezone_string(latitude, longitude)
+        location_dict = convert_lat_lon_to_city_country(latitude, longitude)
+        city = location_dict.get('city', 'Not found')
+        country = location_dict.get('country', 'Not found')
+        state = location_dict.get('state', 'Not found')
+        boundingbox = location_dict.get('boundingbox', 'Not found')
+        boundingbox_float_afied = [float(i) for i in boundingbox]
+
+        lat = location_dict.get('lat', latitude)
+        lon = location_dict.get('lon', longitude)
+
+        new_location = Locations(city=city, state=state,
+                        country=country, boundingbox=boundingbox_float_afied,
+                        lat=lat, lon=lon,
+                        tz_id=timezone_str)
+        sess.add(new_location)
+        sess.commit()
+        location_id = new_location.id
+        
+    date_time_obj = convert_date_string_to_datetime(dateTimeUtc)
+    new_user_location_day = UserLocationDay(user_id=1,location_id=location_id,date_time_utc_user_check_in=date_time_obj,
+                                            date_utc_user_check_in=date_time_obj)
+
+    # Convert datetime object to date object
+    date_only_obj = date_time_obj.date()
+    
+    user_id_AND_date_utc_user_check_in_Exists = sess.query(UserLocationDay).filter_by(user_id=1, date_utc_user_check_in=date_only_obj).first()
+    logger_bp_users.info(f"what is user_id_AND_date_utc_user_check_in_Exists: {user_id_AND_date_utc_user_check_in_Exists}")
+    if user_id_AND_date_utc_user_check_in_Exists is None:        
+        try:
+            sess.add(new_user_location_day)
+            sess.commit()
+        except Exception as e:
+            logger_bp_users.info(f"[Should not fire] Failed to add becuase: {e}")
+            sess.rollback()
+    else:
+        logger_bp_users.info("########################################")
+        logger_bp_users.info("User already has an entry for this day")
+
+    return location_id
 
 
 def get_apple_health_count_date(user_id):
@@ -218,3 +290,29 @@ def get_apple_health_count_date(user_id):
     return apple_health_record_count, earliest_date_str
 
 
+def convert_date_string_to_datetime(date_string):
+    """
+    Convert a date string in the format 'YYYYMMDD-HHMM' to a datetime object.
+    
+    Parameters:
+    - date_string (str): The date string to convert.
+    
+    Returns:
+    - datetime: The corresponding datetime object.
+    """
+    # Define the date format
+    date_format = '%Y%m%d-%H%M'
+    
+    # Convert the string to datetime
+    result = datetime.strptime(date_string, date_format)
+    
+    return result
+
+def make_current_datetime_string():
+
+    # Get the current datetime
+    current_datetime = datetime.now()
+
+    # Convert the datetime to a string in the specified format
+    formatted_datetime = current_datetime.strftime('%Y%m%d-%H%M')
+    return formatted_datetime

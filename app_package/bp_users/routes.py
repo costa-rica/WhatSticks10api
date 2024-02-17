@@ -15,7 +15,7 @@ from app_package.utilsDecorators import token_required
 from app_package.bp_users.utils import send_confirm_email, delete_user_from_table, \
     delete_user_data_files, convert_lat_lon_to_timezone_string, \
     convert_lat_lon_to_city_country, find_user_location, \
-    get_apple_health_count_date
+    add_user_loc_day_process, make_current_datetime_string, get_apple_health_count_date
 from sqlalchemy import desc
 
 
@@ -327,7 +327,7 @@ def update_user(current_user):
 
     # current_user.timezone = request_json.get("timezone")
     # sess.commit()
-    logger_bp_users.info(f"- User info to update: -")
+    logger_bp_users.info(f"-  -")
     logger_bp_users.info(f"- location_permission: {request_json.get('location_permission')} -")
     # logger_bp_users.info(f"- latitude: {request_json.get('latitude')} -")
     # logger_bp_users.info(f"- longitude: {request_json.get('longitude')} -")
@@ -409,52 +409,22 @@ def update_user_location_with_lat_lon(current_user):
         response_dict["message"] = f"Updated status to reoccuring data collection"
         return jsonify(response_dict)
 
-    user_lat = float(request_json.get('latitude'))
-    user_lon = float(request_json.get('longitude'))
+    # Add to User's table
+    latitude = float(request_json.get('latitude'))
+    longitude = float(request_json.get('longitude'))
 
-    timezone_str = convert_lat_lon_to_timezone_string(user_lat, user_lon)
-    current_user.lat = user_lat
-    current_user.lon = user_lon
+    timezone_str = convert_lat_lon_to_timezone_string(latitude, longitude)
+    current_user.lat = latitude
+    current_user.lon = longitude
     current_user.timezone = timezone_str
     sess.commit()
 
-    user_location_id = find_user_location(user_lat, user_lon)
+    # Add to UserLocationDay (and Location, if necessary)
+    location_id = add_user_loc_day_process(current_user.id,latitude, longitude, make_current_datetime_string())
 
-    if user_location_id == "no_location_found":
-        # timezone_str = convert_lat_lon_to_timezone_string(user_lat, user_lon)
-        location_dict = convert_lat_lon_to_city_country(user_lat, user_lon)
-        city = location_dict.get('city', 'Not found')
-        country = location_dict.get('country', 'Not found')
-        state = location_dict.get('state', 'Not found')
-        boundingbox = location_dict.get('boundingbox', 'Not found')
-        boundingbox_float_afied = [float(i) for i in boundingbox]
-
-        lat = location_dict.get('lat', user_lat)
-        lon = location_dict.get('lon', user_lon)
-
-        new_location = Locations(city=city, state=state,
-                        country=country, boundingbox=boundingbox_float_afied,
-                        lat=lat, lon=lon,
-                        tz_id=timezone_str)
-        sess.add(new_location)
-        sess.commit()
-
-        user_location_id = new_location.id
-
-        logger_bp_users.info(f"- added new {city}, {country} to Locations: {lon} -")
-
-    
-
-    new_user_loc_day = UserLocationDay(user_id=current_user.id, location_id = user_location_id,
-                                        date_time_utc_user_check_in = datetime.datetime.utcnow())
-    sess.add(new_user_loc_day)
-    sess.commit()
-
-    user_location = sess.get(Locations, user_location_id)
-
+    user_location = sess.get(Locations, location_id)
     response_dict["message"] = f"Updated user location in UserLocDay Table with {user_location.city}, {user_location.country}"
-    print("returning 404")
-    # return 404
+
     return jsonify(response_dict)
 
 
@@ -471,14 +441,23 @@ def update_user_location_with_user_location_json(current_user):
         response = jsonify({"error": str(e)})
         return make_response(response, 400)
 
-    user_location_list_of_lists = request_json.get('user_location')
+    # user_location_list_of_lists = request_json.get('user_location')
+    user_location_list = request_json.get('user_location')
     timestamp_str = request_json.get('timestamp_utc')
-    user_loction_filename = f"Location_lists-user_id{current_user.id}-{timestamp_str}.json"
-    json_data_path_and_name = os.path.join(current_app.config.get('USER_LOCATION_JSON'),user_loction_filename)
+    # user_loction_filename = f"Location_lists-user_id{current_user.id}-{timestamp_str}.json"
+    # json_data_path_and_name = os.path.join(current_app.config.get('USER_LOCATION_JSON'),user_loction_filename)
 
-    with open(json_data_path_and_name, 'w') as file:
-        json.dump(user_location_list_of_lists, file, indent=4)
+    # with open(json_data_path_and_name, 'w') as file:
+    #     # json.dump(user_location_list_of_lists, file, indent=4)
+    #     json.dump(user_location_list, file, indent=4)
     
+    # # try:
+
+    for location in user_location_list:
+        print(f"location: {location.get('latitude')}")
+        dateTimeUtc=location.get('dateTimeUtc')
+        add_user_loc_day_process(current_user.id,location.get('latitude'), location.get('longitude'), dateTimeUtc)
+
     logger_bp_users.info(f"- wrote {user_loction_filename} (user_location.json file from iOS) -")
 
     response_dict = {}
@@ -486,3 +465,10 @@ def update_user_location_with_user_location_json(current_user):
     response_dict["message"] = f"Sent user location .json data"
 
     return jsonify(response_dict)
+    # except Exception as e:
+    #     logger_bp_users.info(f"- No user_location.json file from iOS -")
+    #     response_dict = {}
+
+    #     response_dict["message"] = f"No user_location.json file from iOS"
+
+    #     return jsonify(response_dict)
