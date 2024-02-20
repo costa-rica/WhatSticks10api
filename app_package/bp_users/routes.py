@@ -451,24 +451,24 @@ def update_user_location_with_user_location_json(current_user):
     #     # json.dump(user_location_list_of_lists, file, indent=4)
     #     json.dump(user_location_list, file, indent=4)
     
-    # # try:
+    try:
 
-    for location in user_location_list:
-        print(f"location: {location.get('latitude')}")
-        dateTimeUtc=location.get('dateTimeUtc')
-        add_user_loc_day_process(current_user.id,location.get('latitude'), location.get('longitude'), dateTimeUtc)
+        for location in user_location_list:
+            print(f"location: {location.get('latitude')}")
+            dateTimeUtc=location.get('dateTimeUtc')
+            add_user_loc_day_process(current_user.id,location.get('latitude'), location.get('longitude'), dateTimeUtc)
 
-    logger_bp_users.info(f"- wrote {user_loction_filename} (user_location.json file from iOS) -")
+        logger_bp_users.info(f"- wrote {user_loction_filename} (user_location.json file from iOS) -")
 
-    response_dict = {}
+        response_dict = {}
 
-    response_dict["message"] = f"Sent user location .json data"
+        response_dict["message"] = f"Sent user location .json data"
 
-    return jsonify(response_dict)
-    # except Exception as e:
-    #     logger_bp_users.info(f"- No user_location.json file from iOS -")
-    #     response_dict = {}
+        return jsonify(response_dict)
+    except Exception as e:
+        logger_bp_users.info(f"- No user_location.json file from iOS -")
+        response_dict = {}
 
-    #     response_dict["message"] = f"No user_location.json file from iOS"
+        response_dict["message"] = f"No user_location.json file from iOS"
 
-    #     return jsonify(response_dict)
+        return jsonify(response_dict)

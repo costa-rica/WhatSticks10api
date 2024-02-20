@@ -56,7 +56,7 @@ def create_app(config_for_flask = config):
     create_folder(config_for_flask.APPLE_HEALTH_DIR)
     create_folder(config_for_flask.DATAFRAME_FILES_DIR)
     create_folder(config_for_flask.OURA_SLEEP_RESPONSES)
-    create_folder(config_for_flask.USER_LOCATION_JSON)
+    # create_folder(config_for_flask.USER_LOCATION_JSON)
     # ios helper files
     create_folder(config_for_flask.WS_IOS_HELPER_FILES)
     create_folder(config_for_flask.DASHBOARD_FILES_DIR)
@@ -65,12 +65,6 @@ def create_app(config_for_flask = config):
     create_folder(config_for_flask.USER_FILES)
     create_folder(config_for_flask.DAILY_CSV)
     create_folder(config_for_flask.RAW_FILES_FOR_DAILY_CSV)
-    # # auxiliary
-    # create_folder(config_for_flask.DIR_DB_AUXILIARY)
-    # create_folder(config_for_flask.DIR_DB_BLOG)
-    # create_folder(config_for_flask.DIR_DB_NEWS)
-    # create_folder(config_for_flask.DIR_DB_AUX_IMAGES_PEOPLE)
-    # create_folder(config_for_flask.DIR_DB_AUX_FILES_UTILITY)
     ############################################################################
     ## Build Sqlite database
     if os.path.exists(os.path.join(config_for_flask.DB_ROOT,os.environ.get('DB_NAME_WHAT_STICKS'))):
