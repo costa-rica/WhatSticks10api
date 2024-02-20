@@ -53,17 +53,19 @@ def are_we_working():
 @bp_users.route('/login',methods=['POST'])
 def login():
     logger_bp_users.info(f"- login endpoint pinged -")
-    logger_bp_users.info(f"All Headers: {request.headers}")
+    # logger_bp_users.info(f"All Headers: {request.headers}")
 
     auth = request.authorization
     logger_bp_users.info(f"- auth.username: {auth.username} -")
 
     if not auth or not auth.username or not auth.password:
+        logger_bp_users.info(f"- /login failed: if not auth or not auth.username or not auth.password")
         return make_response('Could not verify', 401)
 
     user = sess.query(Users).filter_by(email= auth.username).first()
 
     if not user:
+        logger_bp_users.info(f"- /login failed: if not user:")
         return make_response('Could not verify - user not found', 401)
 
     if auth.password:
@@ -94,6 +96,7 @@ def login():
             logger_bp_users.info(f"- user_object_for_swift_app: {user_object_for_swift_app} -")
             return jsonify(user_object_for_swift_app)
 
+    logger_bp_users.info(f"- /login failed: if auth.password:")
     return make_response('Could not verify', 401)
 
 
