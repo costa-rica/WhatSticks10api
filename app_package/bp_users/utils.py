@@ -238,13 +238,13 @@ def add_user_loc_day_process(user_id,latitude, longitude, dateTimeUtc):
         location_id = new_location.id
         
     date_time_obj = convert_date_string_to_datetime(dateTimeUtc)
-    new_user_location_day = UserLocationDay(user_id=1,location_id=location_id,date_time_utc_user_check_in=date_time_obj,
+    new_user_location_day = UserLocationDay(user_id=user_id,location_id=location_id,date_time_utc_user_check_in=date_time_obj,
                                             date_utc_user_check_in=date_time_obj)
 
     # Convert datetime object to date object
     date_only_obj = date_time_obj.date()
     
-    user_id_AND_date_utc_user_check_in_Exists = sess.query(UserLocationDay).filter_by(user_id=1, date_utc_user_check_in=date_only_obj).first()
+    user_id_AND_date_utc_user_check_in_Exists = sess.query(UserLocationDay).filter_by(user_id=user_id, date_utc_user_check_in=date_only_obj).first()
     logger_bp_users.info(f"what is user_id_AND_date_utc_user_check_in_Exists: {user_id_AND_date_utc_user_check_in_Exists}")
     if user_id_AND_date_utc_user_check_in_Exists is None:        
         try:
@@ -316,3 +316,4 @@ def make_current_datetime_string():
     # Convert the datetime to a string in the specified format
     formatted_datetime = current_datetime.strftime('%Y%m%d-%H%M')
     return formatted_datetime
+

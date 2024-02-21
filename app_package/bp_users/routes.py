@@ -67,7 +67,7 @@ def login():
     if not user:
         logger_bp_users.info(f"- /login failed: if not user:")
         return make_response('Could not verify - user not found', 401)
-
+    
     if auth.password:
         if bcrypt.checkpw(auth.password.encode(), user.password):
             serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
@@ -84,7 +84,7 @@ def login():
             user_object_for_swift_app['location_reoccuring_permission'] = str(user.location_reoccuring_permission)
             
             # last_Location = sess.query(UserLocationDay).filter_by(user_id=user.id)
-            latest_entry = sess.query(UserLocationDay).filter(UserLocationDay.user_id == 1) \
+            latest_entry = sess.query(UserLocationDay).filter(UserLocationDay.user_id == user.id) \
                             .order_by(desc(UserLocationDay.date_time_utc_user_check_in)).first()
             if latest_entry != None:
                 user_object_for_swift_app['last_location_date'] = str(latest_entry.date_time_utc_user_check_in)[:10]
@@ -92,9 +92,13 @@ def login():
             if oura_token_obj and oura_token_obj.token is not None:
                 user_object_for_swift_app['oura_token'] = oura_token_obj.token
             
+            login_response_obj = {}
+            login_response_obj['alert_title'] = "Success"
+            login_response_obj['alert_message'] = ""
+            login_response_obj['user'] = user_object_for_swift_app
 
-            logger_bp_users.info(f"- user_object_for_swift_app: {user_object_for_swift_app} -")
-            return jsonify(user_object_for_swift_app)
+            logger_bp_users.info(f"- login_response_obj: {login_response_obj} -")
+            return jsonify(login_response_obj)
 
     logger_bp_users.info(f"- /login failed: if auth.password:")
     return make_response('Could not verify', 401)
@@ -108,7 +112,7 @@ def register():
     # if current_app.config.get('WS_API_PASSWORD') == ws_api_password:
     try:
         request_json = request.json
-        logger_bp_users.info(f"request_json: {request_json}")
+        logger_bp_users.info(f"successfully read request_json (new_email): {request_json.get('new_email')}")
     except Exception as e:
         logger_bp_users.info(f"failed to read json, error: {e}")
         response = jsonify({"error": str(e)})
@@ -290,6 +294,14 @@ def delete_user(current_user):
         return make_response(jsonify({"error":response_message}), 500)
 
     deleted_records += delete_oura_token[0]
+
+    delete_user_location_day = delete_user_from_table(current_user, UserLocationDay)
+    if delete_oura_token[1]:
+        logger_bp_users.info(f"- Error trying to delete UserLocationDay for user {current_user.id}, error: {delete_oura_token[1]} -")
+        response_message = f"Error trying to delete UserLocationDay for user {current_user.id}, error: {delete_oura_token[1]} "
+        return make_response(jsonify({"error":response_message}), 500)
+
+    deleted_records += delete_user_location_day[0]
 
     # delete: dataframe pickle, data source json, and dashboard json
     delete_user_data_files(current_user)
