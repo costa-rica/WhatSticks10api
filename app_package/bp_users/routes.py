@@ -13,10 +13,10 @@ import json
 import socket
 from app_package.utilsDecorators import token_required
 from app_package.bp_users.utils import send_confirm_email, delete_user_from_table, \
-    delete_user_data_files, convert_lat_lon_to_timezone_string, \
-    convert_lat_lon_to_city_country, find_user_location, \
-    add_user_loc_day_process, make_current_datetime_string, get_apple_health_count_date
+    delete_user_data_files, get_apple_health_count_date
 from sqlalchemy import desc
+from ws_utilities import convert_lat_lon_to_timezone_string, convert_lat_lon_to_city_country, \
+    find_user_location, add_user_loc_day_process
 
 
 formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
@@ -42,8 +42,6 @@ salt = bcrypt.gensalt()
 @bp_users.route('/are_we_working', methods=['GET'])
 def are_we_working():
     logger_bp_users.info(f"are_we_working endpoint pinged")
-
-    # logger_bp_users.info(f"{current_app.config.get('WS_API_PASSWORD')}")
 
     hostname = socket.gethostname()
 
@@ -405,8 +403,14 @@ def update_user_location_with_lat_lon(current_user):
     current_user.timezone = timezone_str
     sess.commit()
 
+    # Get the current datetime
+    current_datetime = datetime.now()
+
+    # Convert the datetime to a string in the specified format
+    formatted_datetime = current_datetime.strftime('%Y%m%d-%H%M')
+
     # Add to UserLocationDay (and Location, if necessary)
-    location_id = add_user_loc_day_process(current_user.id,latitude, longitude, make_current_datetime_string())
+    location_id = add_user_loc_day_process(current_user.id,latitude, longitude, formatted_datetime)
 
     user_location = sess.get(Locations, location_id)
     response_dict["message"] = f"Updated user location in UserLocDay Table with {user_location.city}, {user_location.country}"
@@ -427,15 +431,13 @@ def update_user_location_with_user_location_json(current_user):
         response = jsonify({"error": str(e)})
         return make_response(response, 400)
 
-    # user_location_list_of_lists = request_json.get('user_location')
     user_location_list = request_json.get('user_location')
     timestamp_str = request_json.get('timestamp_utc')
-    # user_loction_filename = f"Location_lists-user_id{current_user.id}-{timestamp_str}.json"
-    # json_data_path_and_name = os.path.join(current_app.config.get('USER_LOCATION_JSON'),user_loction_filename)
+    user_loction_filename = f"user_location-user_id{current_user.id}.json"
+    json_data_path_and_name = os.path.join(current_app.config.get('USER_LOCATION_JSON'),user_loction_filename)
 
-    # with open(json_data_path_and_name, 'w') as file:
-    #     # json.dump(user_location_list_of_lists, file, indent=4)
-    #     json.dump(user_location_list, file, indent=4)
+    with open(json_data_path_and_name, 'w') as file:
+        json.dump(user_location_list, file, indent=4)
     
     try:
 
@@ -449,7 +451,7 @@ def update_user_location_with_user_location_json(current_user):
         logger_bp_users.info(f"- successfully added user_location.json data to UserLocationDay -")
 
         response_dict = {}
-        response_dict['alert_title'] = "Success"
+        response_dict['alert_title'] = "Success!"# < -- This is expected response for WSiOS to delete old user_locations.json
         response_dict['alert_message'] = ""
 
         return jsonify(response_dict)
