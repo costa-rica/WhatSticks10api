@@ -236,8 +236,9 @@ def add_user_loc_day_process(user_id,latitude, longitude, dateTimeUtc):
         sess.add(new_location)
         sess.commit()
         location_id = new_location.id
-        
-    date_time_obj = convert_date_string_to_datetime(dateTimeUtc)
+    
+    # date_time_obj = convert_date_string_to_datetime(dateTimeUtc)
+    date_time_obj = convert_string_to_datetime_elegant(dateTimeUtc)
     new_user_location_day = UserLocationDay(user_id=user_id,location_id=location_id,date_time_utc_user_check_in=date_time_obj,
                                             date_utc_user_check_in=date_time_obj)
 
@@ -289,24 +290,37 @@ def get_apple_health_count_date(user_id):
 
     return apple_health_record_count, earliest_date_str
 
+# Elegant Method
+def convert_string_to_datetime_elegant(date_string):
+    # List of formats to try
+    formats = ['%Y%m%d-%H%M', '%Y-%m-%d %H:%M:%S', '%Y/%m/%d']
 
-def convert_date_string_to_datetime(date_string):
-    """
-    Convert a date string in the format 'YYYYMMDD-HHMM' to a datetime object.
+    for fmt in formats:
+        try:
+            return datetime.strptime(date_string, fmt)
+        except ValueError:
+            continue
+    # If none of the formats work, return None or raise an exception
+    return None
+
+
+# def convert_date_string_to_datetime(date_string):
+#     """
+#     Convert a date string in the format 'YYYYMMDD-HHMM' to a datetime object.
     
-    Parameters:
-    - date_string (str): The date string to convert.
+#     Parameters:
+#     - date_string (str): The date string to convert.
     
-    Returns:
-    - datetime: The corresponding datetime object.
-    """
-    # Define the date format
-    date_format = '%Y%m%d-%H%M'
+#     Returns:
+#     - datetime: The corresponding datetime object.
+#     """
+#     # Define the date format
+#     date_format = '%Y%m%d-%H%M'
     
-    # Convert the string to datetime
-    result = datetime.strptime(date_string, date_format)
+#     # Convert the string to datetime
+#     result = datetime.strptime(date_string, date_format)
     
-    return result
+#     return result
 
 def make_current_datetime_string():
 

@@ -145,26 +145,27 @@ def register():
     hash_pw = bcrypt.hashpw(request_json.get('new_password').encode(), salt)
     new_user = Users()
 
-    lat = 999.999
-    lon = 999.999
+    # lat = 999.999
+    # lon = 999.999
 
     for key, value in request_json.items():
         if key == "new_password":
             setattr(new_user, "password", hash_pw)
         elif key == "new_email":
             setattr(new_user, "email", request_json.get('new_email'))
-        elif key == "lat":
-            lat = float(request_json.get('lat'))
-            setattr(new_user, "lat", lat)
-        elif key == "lon":
-            lon = float(request_json.get('lon'))
-            setattr(new_user, "lon", lon)
+        # elif key == "lat":
+        #     lat = float(request_json.get('lat'))
+        #     setattr(new_user, "lat", lat)
+        # elif key == "lon":
+        #     lon = float(request_json.get('lon'))
+        #     setattr(new_user, "lon", lon)
 
 
-    timezone_string = convert_lat_lon_to_timezone_string(lat, lon)
-    # defaults to "Etc/GMT"
-    if timezone_string != "Timezone could not be determined":
-        setattr(new_user, "timezone", timezone_string)
+    # timezone_string = convert_lat_lon_to_timezone_string(lat, lon)
+    # # defaults to "Etc/GMT"
+    # if timezone_string != "Timezone could not be determined":
+    #     setattr(new_user, "timezone", timezone_string)
+    setattr(new_user, "timezone", "Etc/GMT")
 
     sess.add(new_user)
     sess.commit()
@@ -176,7 +177,7 @@ def register():
     response_dict["message"] = f"new user created: {request_json.get('new_email')}"
     response_dict["id"] = f"{new_user.id}"
     response_dict["username"] = f"{new_user.username}"
-    response_dict["alert_title"] = f"Sucess!"
+    response_dict["alert_title"] = f"Success!"
     response_dict["alert_message"] = f""
 
     return jsonify(response_dict)
@@ -323,36 +324,6 @@ def delete_user(current_user):
     logger_bp_users.info(f"- response_dict: {response_dict} -")
     return jsonify(response_dict)
 
-# NOTE: 2024-02-08: This needs work if we are still going to user this 
-# location/timezone endpoint
-@bp_users.route('/update_user', methods=['POST'])
-@token_required
-def update_user(current_user):
-    logger_bp_users.info(f"- update_user endpoint pinged -")
-    # ws_api_password = request.json.get('WS_API_PASSWORD')
-    logger_bp_users.info(request.json)
-    # if current_app.config.get('WS_API_PASSWORD') == ws_api_password:
-    try:
-        request_json = request.json
-        logger_bp_users.info(f"request_json: {request_json}")
-    except Exception as e:
-        logger_bp_users.info(f"failed to read json, error: {e}")
-        response = jsonify({"error": str(e)})
-        return make_response(response, 400)
-
-    # current_user.timezone = request_json.get("timezone")
-    # sess.commit()
-    logger_bp_users.info(f"-  -")
-    logger_bp_users.info(f"- location_permission: {request_json.get('location_permission')} -")
-    # logger_bp_users.info(f"- latitude: {request_json.get('latitude')} -")
-    # logger_bp_users.info(f"- longitude: {request_json.get('longitude')} -")
-
-    current_user.location_permission = request_json.get('location_permission') == 'True'
-    sess.commit()
-
-    response_dict = {}
-    response_dict["message"] = f"Updated user latitude and longituede in UserLocDay Table to {request_json.get('latitude')}"
-    return jsonify(response_dict)
 
 @bp_users.route('/reset_password', methods = ["GET", "POST"])
 def reset_password():
@@ -469,21 +440,64 @@ def update_user_location_with_user_location_json(current_user):
     try:
 
         for location in user_location_list:
-            print(f"location: {location.get('latitude')}")
-            dateTimeUtc=location.get('dateTimeUtc')
-            add_user_loc_day_process(current_user.id,location.get('latitude'), location.get('longitude'), dateTimeUtc)
+            dateTimeUtc = location.get('dateTimeUtc')
+            latitude = location.get('latitude')
+            longitude = location.get('longitude')
+            
+            add_user_loc_day_process(current_user.id,latitude, longitude, dateTimeUtc)
 
-        logger_bp_users.info(f"- wrote {user_loction_filename} (user_location.json file from iOS) -")
+        logger_bp_users.info(f"- successfully added user_location.json data to UserLocationDay -")
 
         response_dict = {}
-
-        response_dict["message"] = f"Sent user location .json data"
+        response_dict['alert_title'] = "Success"
+        response_dict['alert_message'] = ""
 
         return jsonify(response_dict)
     except Exception as e:
-        logger_bp_users.info(f"- No user_location.json file from iOS -")
-        response_dict = {}
+        logger_bp_users.info(f"- Error trying to add user_location.json from iOS -")
+        logger_bp_users.info(f"- {type(e).__name__}: {e} -")
 
-        response_dict["message"] = f"No user_location.json file from iOS"
+        response_dict = {}
+        response_dict['alert_title'] = "Failed"
+        response_dict['alert_message'] = "Something went wrong adding user's location to database."
 
         return jsonify(response_dict)
+
+
+
+
+#######
+# OBE #
+#######
+
+
+# # NOTE: 2024-02-08: This needs work if we are still going to user this 
+# # location/timezone endpoint
+# @bp_users.route('/update_user', methods=['POST'])
+# @token_required
+# def update_user(current_user):
+#     logger_bp_users.info(f"- update_user endpoint pinged -")
+#     # ws_api_password = request.json.get('WS_API_PASSWORD')
+#     logger_bp_users.info(request.json)
+#     # if current_app.config.get('WS_API_PASSWORD') == ws_api_password:
+#     try:
+#         request_json = request.json
+#         logger_bp_users.info(f"request_json: {request_json}")
+#     except Exception as e:
+#         logger_bp_users.info(f"failed to read json, error: {e}")
+#         response = jsonify({"error": str(e)})
+#         return make_response(response, 400)
+
+#     # current_user.timezone = request_json.get("timezone")
+#     # sess.commit()
+#     logger_bp_users.info(f"-  -")
+#     logger_bp_users.info(f"- location_permission: {request_json.get('location_permission')} -")
+#     # logger_bp_users.info(f"- latitude: {request_json.get('latitude')} -")
+#     # logger_bp_users.info(f"- longitude: {request_json.get('longitude')} -")
+
+#     current_user.location_permission = request_json.get('location_permission') == 'True'
+#     sess.commit()
+
+#     response_dict = {}
+#     response_dict["message"] = f"Updated user latitude and longituede in UserLocDay Table to {request_json.get('latitude')}"
+#     return jsonify(response_dict)
