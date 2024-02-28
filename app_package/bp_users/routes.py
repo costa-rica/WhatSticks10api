@@ -4,7 +4,7 @@ from ws_models import sess, Users, OuraToken, OuraSleepDescriptions, AppleHealth
     UserLocationDay, Locations
 from werkzeug.security import generate_password_hash, check_password_hash #password hashing
 import bcrypt
-import datetime
+from datetime import datetime
 from itsdangerous.url_safe import URLSafeTimedSerializer#new 2023
 import logging
 import os
@@ -468,38 +468,4 @@ def update_user_location_with_user_location_json(current_user):
 
 
 
-#######
-# OBE #
-#######
 
-
-# # NOTE: 2024-02-08: This needs work if we are still going to user this 
-# # location/timezone endpoint
-# @bp_users.route('/update_user', methods=['POST'])
-# @token_required
-# def update_user(current_user):
-#     logger_bp_users.info(f"- update_user endpoint pinged -")
-#     # ws_api_password = request.json.get('WS_API_PASSWORD')
-#     logger_bp_users.info(request.json)
-#     # if current_app.config.get('WS_API_PASSWORD') == ws_api_password:
-#     try:
-#         request_json = request.json
-#         logger_bp_users.info(f"request_json: {request_json}")
-#     except Exception as e:
-#         logger_bp_users.info(f"failed to read json, error: {e}")
-#         response = jsonify({"error": str(e)})
-#         return make_response(response, 400)
-
-#     # current_user.timezone = request_json.get("timezone")
-#     # sess.commit()
-#     logger_bp_users.info(f"-  -")
-#     logger_bp_users.info(f"- location_permission: {request_json.get('location_permission')} -")
-#     # logger_bp_users.info(f"- latitude: {request_json.get('latitude')} -")
-#     # logger_bp_users.info(f"- longitude: {request_json.get('longitude')} -")
-
-#     current_user.location_permission = request_json.get('location_permission') == 'True'
-#     sess.commit()
-
-#     response_dict = {}
-#     response_dict["message"] = f"Updated user latitude and longituede in UserLocDay Table to {request_json.get('latitude')}"
-#     return jsonify(response_dict)
