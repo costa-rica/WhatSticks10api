@@ -45,28 +45,22 @@ def token_required(f):
             return jsonify({'message': 'Token is missing'}), 401
         
         try:
-            # data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms="HS256")
-            # s=Serializer(current_app.config['SECRET_KEY'])
-            
-            # decrypted_token_dict = s.loads(token)
             serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
             decrypted_token_dict = serializer.loads(token)
             logger_utilDecorators.info(f'- decrypted_token_dict: {decrypted_token_dict} -')
-            # print('decrypted_token_dict', type(decrypted_token_dict))
-            # print('decrypted_token_dict:::', type(decrypted_token_dict['user_id']), decrypted_token_dict['user_id'])
-            # current_user = Users.query.filter_by(id = data['user_id']).first()
-            print('----')
-            print(decrypted_token_dict['user_id'])
-            print(sess.query(Users).filter_by(id = decrypted_token_dict['user_id']).first())
-            print('----')
-
+            logger_utilDecorators.info('----')
+            logger_utilDecorators.info(decrypted_token_dict['user_id'])
+            logger_utilDecorators.info(sess.query(Users).filter_by(id = decrypted_token_dict['user_id']).first())
+            logger_utilDecorators.info('----')
             current_user = sess.query(Users).filter_by(id = decrypted_token_dict['user_id']).first()
-            # print('PC data is decrypted correctly :::')
             logger_utilDecorators.info(f'- token decrypted correctly -')
-        except:
-            logger_utilDecorators.info(f'- token NOT decrypted correctly -')
+        # except:
+        #     logger_utilDecorators.info(f'- token NOT decrypted correctly -')
+        #     return jsonify({'message': 'Token is invalid'}), 401
+        except Exception as e:
+            logger_utilDecorators.info(f"- token NOT decrypted correctly -")
+            logger_utilDecorators.info(f"- {type(e).__name__}: {e} -")
             return jsonify({'message': 'Token is invalid'}), 401
-        
         
         return f(current_user, *args, **kwargs)
     

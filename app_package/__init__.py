@@ -67,12 +67,10 @@ def create_app(config_for_flask = config):
     create_folder(config_for_flask.DAILY_CSV)
     create_folder(config_for_flask.RAW_FILES_FOR_DAILY_CSV)
     ############################################################################
-    ## Build Sqlite database
-    if os.path.exists(os.path.join(config_for_flask.DB_ROOT,os.environ.get('DB_NAME_WHAT_STICKS'))):
-        logger_init.info(f"db already exists: {os.path.join(config_for_flask.DB_ROOT,os.environ.get('DB_NAME_WHAT_STICKS'))}")
-    else:
-        Base.metadata.create_all(engine)
-        logger_init.info(f"NEW db created: {os.path.join(config_for_flask.DB_ROOT,os.environ.get('DB_NAME_WHAT_STICKS'))}")
+    # Build MySQL database
+    Base.metadata.create_all(engine)
+    logger_init.info(f"- MYSQL_USER: {config_for_flask.MYSQL_USER}")
+    logger_init.info(f"- MYSQL_DATABASE_NAME: {config_for_flask.MYSQL_DATABASE_NAME}")
 
     from app_package.bp_users.routes import bp_users
     from app_package.bp_oura.routes import bp_oura

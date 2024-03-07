@@ -67,7 +67,8 @@ def login():
         return make_response('Could not verify - user not found', 401)
     
     if auth.password:
-        if bcrypt.checkpw(auth.password.encode(), user.password):
+        # if bcrypt.checkpw(auth.password.encode(), user.password):
+        if bcrypt.checkpw(auth.password.encode(), user.password.encode()):
             serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
 
             user_object_for_swift_app = {}
@@ -112,7 +113,8 @@ def register():
         request_json = request.json
         logger_bp_users.info(f"successfully read request_json (new_email): {request_json.get('new_email')}")
     except Exception as e:
-        logger_bp_users.info(f"failed to read json, error: {e}")
+        logger_bp_users.info(f"failed to read json")
+        logger_bp_users.info(f"{type(e).__name__}: {e}")
         response = jsonify({"error": str(e)})
         return make_response(response, 400)
     
@@ -224,7 +226,8 @@ def send_data_source_objects(current_user):
         return jsonify(list_data_source_objects)
 
     except Exception as e:
-        logger_bp_users.error(f"An error occurred (in send_data_source_objects): {e}")
+        logger_bp_users.error(f"An error occurred in send_data_source_objects)")
+        logger_bp_users.info(f"{type(e).__name__}: {e}")
         logger_bp_users.info(f"- END send_data_source_objects -")
         return jsonify({"error": "An unexpected error occurred"}), 500
 
@@ -258,7 +261,7 @@ def send_dashboard_table_objects(current_user):
         return jsonify({"error": error_message}), 404
 
     except Exception as e:
-        logger_bp_users.error(f"An error occurred: {e}")
+        logger_bp_users.info(f"{type(e).__name__}: {e}")
         logger_bp_users.info(f"- END send_dashboard_table_objects -")
         return jsonify({"error": "An unexpected error occurred"}), 500
 
@@ -332,14 +335,10 @@ def reset_password():
         request_json = request.json
         logger_bp_users.info(f"request_json: {request_json}")
     except Exception as e:
-        logger_bp_users.info(f"failed to read json, error: {e}")
+        logger_bp_users.info(f"failed to read json")
+        logger_bp_users.info(f"{type(e).__name__}: {e}")
         response = jsonify({"error": str(e)})
         return make_response(response, 400)
-
-    # user_exists = sess.query(Users).filter_by(email= request_json.get('new_email')).first()
-
-    # if user_exists == None:
-    #     return jsonify({"message": f"User already exists"})
 
 
     if request.method == 'POST':
@@ -368,7 +367,8 @@ def update_user_location_with_lat_lon(current_user):
         request_json = request.json
         logger_bp_users.info(f"request_json: {request_json}")
     except Exception as e:
-        logger_bp_users.info(f"failed to read json, error: {e}")
+        logger_bp_users.info(f"failed to read json in update_user_location_with_lat_lon")
+        logger_bp_users.info(f"{type(e).__name__}: {e}")
         response = jsonify({"error": str(e)})
         return make_response(response, 400)
 
@@ -427,7 +427,8 @@ def update_user_location_with_user_location_json(current_user):
         request_json = request.json
         logger_bp_users.info(f"request_json: {request_json}")
     except Exception as e:
-        logger_bp_users.info(f"failed to read json, error: {e}")
+        logger_bp_users.info(f"failed to read json in update_user_location_with_user_location_json")
+        logger_bp_users.info(f"{type(e).__name__}: {e}")
         response = jsonify({"error": str(e)})
         return make_response(response, 400)
 
@@ -440,12 +441,10 @@ def update_user_location_with_user_location_json(current_user):
         json.dump(user_location_list, file, indent=4)
     
     try:
-
         for location in user_location_list:
             dateTimeUtc = location.get('dateTimeUtc')
             latitude = location.get('latitude')
             longitude = location.get('longitude')
-            
             add_user_loc_day_process(current_user.id,latitude, longitude, dateTimeUtc)
 
         logger_bp_users.info(f"- successfully added user_location.json data to UserLocationDay -")
