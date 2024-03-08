@@ -50,9 +50,9 @@ def token_required(f):
             logger_utilDecorators.info(f'- decrypted_token_dict: {decrypted_token_dict} -')
             logger_utilDecorators.info('----')
             logger_utilDecorators.info(decrypted_token_dict['user_id'])
-            logger_utilDecorators.info(sess.query(Users).filter_by(id = decrypted_token_dict['user_id']).first())
+            logger_utilDecorators.info(sess.get(Users,int(decrypted_token_dict['user_id'])))
             logger_utilDecorators.info('----')
-            current_user = sess.query(Users).filter_by(id = decrypted_token_dict['user_id']).first()
+            current_user = sess.get(Users,int(decrypted_token_dict['user_id']))
             logger_utilDecorators.info(f'- token decrypted correctly -')
         # except:
         #     logger_utilDecorators.info(f'- token NOT decrypted correctly -')
