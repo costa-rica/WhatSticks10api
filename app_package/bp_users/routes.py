@@ -1,7 +1,7 @@
 from flask import Blueprint
 from flask import request, jsonify, make_response, current_app
 from ws_models import sess, Users, OuraToken, OuraSleepDescriptions, AppleHealthQuantityCategory, \
-    UserLocationDay, Locations
+    AppleHealthWorkout, UserLocationDay, Locations
 from werkzeug.security import generate_password_hash, check_password_hash #password hashing
 import bcrypt
 from datetime import datetime
@@ -112,6 +112,7 @@ def register():
     try:
         request_json = request.json
         logger_bp_users.info(f"successfully read request_json (new_email): {request_json.get('new_email')}")
+        logger_bp_users.info(f"successfully read request_json: {request_json}")
     except Exception as e:
         logger_bp_users.info(f"failed to read json")
         logger_bp_users.info(f"{type(e).__name__}: {e}")
@@ -273,13 +274,22 @@ def delete_user(current_user):
 
     deleted_records = 0
 
-    delete_apple_health = delete_user_from_table(current_user, AppleHealthQuantityCategory)
-    if delete_apple_health[1]:
-        logger_bp_users.info(f"- Error trying to delete AppleHealthQuantityCategory for user {current_user.id}, error: {delete_apple_health[1]} -")
-        response_message = f"- Error trying to delete AppleHealthQuantityCategory for user {current_user.id}, error: {delete_apple_health[1]}"
+    # delete_apple_health = delete_user_from_table(current_user, AppleHealthQuantityCategory)
+    delete_apple_health_qty_cat = delete_user_from_table(current_user, AppleHealthQuantityCategory)
+    if delete_apple_health_qty_cat[1]:
+        logger_bp_users.info(f"- Error trying to delete AppleHealthQuantityCategory for user {current_user.id}, error: {delete_apple_health_qty_cat[1]} -")
+        response_message = f"- Error trying to delete AppleHealthQuantityCategory for user {current_user.id}, error: {delete_apple_health_qty_cat[1]}"
         return make_response(jsonify({"error":response_message}), 500)
     
-    deleted_records = delete_apple_health[0]
+    deleted_records = delete_apple_health_qty_cat[0]
+
+    delete_apple_health_workouts = delete_user_from_table(current_user, AppleHealthWorkout)
+    if delete_apple_health_workouts[1]:
+        logger_bp_users.info(f"- Error trying to delete AppleHealthQuantityCategory for user {current_user.id}, error: {delete_apple_health_workouts[1]} -")
+        response_message = f"- Error trying to delete AppleHealthQuantityCategory for user {current_user.id}, error: {delete_apple_health_workouts[1]}"
+        return make_response(jsonify({"error":response_message}), 500)
+    
+    deleted_records = delete_apple_health_workouts[0]
 
     delete_oura_sleep_descriptions = delete_user_from_table(current_user, OuraSleepDescriptions)
     if delete_oura_sleep_descriptions[1]:
