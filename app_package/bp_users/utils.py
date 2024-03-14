@@ -41,14 +41,33 @@ def send_reset_email(user):
     msg = Message('Password Reset Request',
                   sender=current_app.config.get('MAIL_USERNAME'),
                   recipients=[user.email])
-    msg.body = f'''To reset your password, visit the following link:
-{url_for('users.reset_token', token=token, _external=True)}
+    
+    # Replace 'url_for' with the full external reset URL, appending the token as a query parameter
+    base_url = website_url()
+    reset_url = f"{base_url}/reset_password?token={token}"
+    # match os.environ.get('FLASK_CONFIG_TYPE'):
+    #     case 'dev':
+    #         reset_url = f"https://dev.what-sticks.com/reset_password?token={token}"
+    #     case 'prod':
+    #         reset_url = f"https://what-sticks.com/reset_password?token={token}"
+    #     case _:
+    #         reset_url = f"http://localhost:5000/reset_password?token={token}"
+    
+    long_f_string = (
+        "To reset your password, visit the following link:" +
+        f"\n {reset_url} " +
+        "\n\n" +
+        "If you did not make this request, simply ignore this email and no changes will be made."
+    )
+    msg.body =long_f_string
 
-If you did not make this request, ignore email and there will be no change
-'''
     mail.send(msg)
 
+    #     msg.body = f'''To reset your password, visit the following link:
+    # {url_for('users.reset_token', token=token, _external=True)}
 
+    # If you did not make this request, ignore email and there will be no change
+    # '''
 def send_confirm_email(email):
     if os.environ.get('FLASK_CONFIG_TYPE') != 'local':
         logger_bp_users.info(f"-- sending email to {email} --")
@@ -142,5 +161,14 @@ def get_apple_health_count_date(user_id):
 
     return apple_health_record_count, earliest_date_str
 
-
+def website_url():
+    match os.environ.get('FLASK_CONFIG_TYPE'):
+        case 'dev':
+            base_url = f"https://dev.what-sticks.com"
+        case 'prod':
+            base_url = f"https://what-sticks.com"
+        case _:
+            base_url = f"http://localhost:5000"
+    
+    return base_url
 

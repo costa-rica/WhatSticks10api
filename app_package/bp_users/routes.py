@@ -12,7 +12,7 @@ from logging.handlers import RotatingFileHandler
 import json
 import socket
 from app_package.utilsDecorators import token_required
-from app_package.bp_users.utils import send_confirm_email, delete_user_from_table, \
+from app_package.bp_users.utils import send_confirm_email, send_reset_email, delete_user_from_table, \
     delete_user_data_files, get_apple_health_count_date
 from sqlalchemy import desc
 from ws_utilities import convert_lat_lon_to_timezone_string, convert_lat_lon_to_city_country, \
@@ -336,10 +336,11 @@ def delete_user(current_user):
     return jsonify(response_dict)
 
 
-@bp_users.route('/reset_password', methods = ["GET", "POST"])
-def reset_password():
+# @bp_users.route('/reset_password', methods = ["GET", "POST"])
+@bp_users.route('/get_reset_password_token', methods = ["GET"])
+def get_reset_password_token():
 
-    logger_bp_users.info(f"- reset_password endpoint pinged -")
+    logger_bp_users.info(f"- accessed: get_reset_password_token endpoint pinged -")
     logger_bp_users.info(request.json)
     try:
         request_json = request.json
@@ -350,24 +351,57 @@ def reset_password():
         response = jsonify({"error": str(e)})
         return make_response(response, 400)
 
+    # if request.method == 'POST':
+    # formDict = request.form.to_dict()
+    email = request_json.get('email')
+    user = sess.query(Users).filter_by(email=email).first()
+    logger_bp_users.info(f"- user: {user} -")
+    if user:
+        logger_bp_users.info('Email reaquested to reset: ', email)
+        send_reset_email(user)
+        response_dict = {}
+        response_dict['alert_title'] = "Success"
+        response_dict['alert_message'] = f"email sent to: {email} with reset information"
+        return jsonify(response_dict)
 
-    if request.method == 'POST':
-        formDict = request.form.to_dict()
-        email = formDict.get('email')
-        user = sess.query(Users).filter_by(email=email).first()
-        if user:
-        # send_reset_email(user)
-            logger_bp_users.info('Email reaquested to reset: ', email)
-            send_reset_email(user)
+    else:
+        response_dict = {}
+        response_dict['alert_title'] = "Success"
+        response_dict['alert_message'] = f" {email} has no account with What Sticks"
 
-            response_dict = {}
-            response_dict["message"] = f"email sent to: {request_json.get('new_email')} with reset information"
-            return jsonify(response_dict)
+        return jsonify(response_dict)
 
-        else:
-            response_dict = {}
-            response_dict["message"] = f"The email you entered has no account with What Sticks"
-            return jsonify(response_dict)
+
+@bp_users.route('/reset_password', methods = ["GET"])
+@token_required
+def reset_password(current_user):
+    logger_bp_users.info(f"- accessed: reset_password with token")
+    try:
+        request_json = request.json
+        logger_bp_users.info(f"successfully read request_json: {request_json}")
+    except Exception as e:
+        logger_bp_users.info(f"failed to read json")
+        logger_bp_users.info(f"{type(e).__name__}: {e}")
+        response = jsonify({"error": str(e)})
+        return make_response(response, 400)
+
+    if current_user:
+        hash_pw = bcrypt.hashpw(request_json.get('password_text').encode(), salt)
+        current_user.password = hash_pw
+        sess.commit()
+
+        response_dict = {}
+        response_dict['alert_title'] = "Success"
+        response_dict['alert_message'] = f" {current_user.username}'s password has been reset"
+
+        return jsonify(response_dict)
+    else:
+        response_dict = {}
+        response_dict['alert_title'] = "Failed"
+        response_dict['alert_message'] = f" {current_user.username}'s password has NOT been reset"
+
+        return jsonify(response_dict)
+
 
 @bp_users.route('/update_user_location_with_lat_lon', methods=["POST"])
 @token_required
