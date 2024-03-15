@@ -39,6 +39,7 @@ logging.getLogger('werkzeug').setLevel(logging.DEBUG)
 logging.getLogger('werkzeug').addHandler(file_handler)
 
 logger_init.info(f'--- Starting WhatSticks10 API ---')
+logger_init.info(f'ACTIVATE_TECHNICAL_DIFFICULTIES_ALERT: {config.ACTIVATE_TECHNICAL_DIFFICULTIES_ALERT}')
 
 mail = Mail()
 

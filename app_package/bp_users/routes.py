@@ -11,7 +11,7 @@ import os
 from logging.handlers import RotatingFileHandler
 import json
 import socket
-from app_package.utilsDecorators import token_required
+from app_package.utilsDecorators import token_required, response_dict_tech_difficulties_alert
 from app_package.bp_users.utils import send_confirm_email, send_reset_email, delete_user_from_table, \
     delete_user_data_files, get_apple_health_count_date
 from sqlalchemy import desc
@@ -51,7 +51,12 @@ def are_we_working():
 @bp_users.route('/login',methods=['POST'])
 def login():
     logger_bp_users.info(f"- login endpoint pinged -")
-    # logger_bp_users.info(f"All Headers: {request.headers}")
+    #############################################################################################
+    ## In case of emergency, ACTIVATE_TECHNICAL_DIFFICULTIES_ALERT prevents users from logging in
+    if current_app.config.get('ACTIVATE_TECHNICAL_DIFFICULTIES_ALERT'):
+        response_dict = response_dict_tech_difficulties_alert(response_dict = {})
+        return jsonify(response_dict)
+    #############################################################################################
 
     auth = request.authorization
     logger_bp_users.info(f"- auth.username: {auth.username} -")
@@ -91,13 +96,13 @@ def login():
             if oura_token_obj and oura_token_obj.token is not None:
                 user_object_for_swift_app['oura_token'] = oura_token_obj.token
             
-            login_response_obj = {}
-            login_response_obj['alert_title'] = "Success"
-            login_response_obj['alert_message'] = ""
-            login_response_obj['user'] = user_object_for_swift_app
+            response_dict = {}
+            response_dict['alert_title'] = "Success"
+            response_dict['alert_message'] = ""
+            response_dict['user'] = user_object_for_swift_app
 
-            logger_bp_users.info(f"- login_response_obj: {login_response_obj} -")
-            return jsonify(login_response_obj)
+            logger_bp_users.info(f"- response_dict: {response_dict} -")
+            return jsonify(response_dict)
 
     logger_bp_users.info(f"- /login failed: if auth.password:")
     return make_response('Could not verify', 401)
@@ -108,7 +113,14 @@ def register():
     logger_bp_users.info(f"- register endpoint pinged -")
     # ws_api_password = request.json.get('WS_API_PASSWORD')
     logger_bp_users.info(request.json)
-    # if current_app.config.get('WS_API_PASSWORD') == ws_api_password:
+
+    ######################################################################################
+    ## In case of emergency, ACTIVATE_TECHNICAL_DIFFICULTIES_ALERT prevents new users
+    if current_app.config.get('ACTIVATE_TECHNICAL_DIFFICULTIES_ALERT'):
+        response_dict = response_dict_tech_difficulties_alert(response_dict = {})
+        return jsonify(response_dict)
+    ######################################################################################
+
     try:
         request_json = request.json
         logger_bp_users.info(f"successfully read request_json (new_email): {request_json.get('new_email')}")
@@ -121,19 +133,11 @@ def register():
     
     response_dict = {}
 
-    ######################################################################################
-    ## NOTE: In case of emergency you can activate this  response to reject any new users
-    ######################################################################################
-    # response_dict["alert_title"] = f"Cannot receive new users"
-    # response_dict["alert_message"] = f"Due to lack of resources we cannot full fill this request. Database full. \n\n We appreciate your patience while we figure things out."
-    # print(response_dict)
-    # return jsonify(response_dict)
-    ######################################################################################
-
     if request_json.get('new_email') in ("", None) or request_json.get('new_password') in ("" , None):
         # return jsonify({"message": f"User must have email and password"})
         response_dict["alert_title"] = f"User must have email and password"
         response_dict["alert_message"] = f""
+        response_dict = response_dict_tech_difficulties_alert(response_dict = {})
         return jsonify(response_dict)
 
     user_exists = sess.query(Users).filter_by(email= request_json.get('new_email')).first()
@@ -141,6 +145,7 @@ def register():
     if user_exists:
         response_dict["alert_title"] = f"User already exists"
         response_dict["alert_message"] = f"Try loggining in"
+        response_dict = response_dict_tech_difficulties_alert(response_dict = {})
         return jsonify(response_dict)
 
     hash_pw = bcrypt.hashpw(request_json.get('new_password').encode(), salt)
@@ -337,11 +342,19 @@ def delete_user(current_user):
 
 
 # @bp_users.route('/reset_password', methods = ["GET", "POST"])
-@bp_users.route('/get_reset_password_token', methods = ["GET"])
+@bp_users.route('/get_reset_password_token', methods = ["GET", "POST"])
 def get_reset_password_token():
 
     logger_bp_users.info(f"- accessed: get_reset_password_token endpoint pinged -")
     logger_bp_users.info(request.json)
+    #############################################################################################
+    ## In case of emergency, ACTIVATE_TECHNICAL_DIFFICULTIES_ALERT prevents users from logging in
+    if current_app.config.get('ACTIVATE_TECHNICAL_DIFFICULTIES_ALERT'):
+        response_dict = response_dict_tech_difficulties_alert(response_dict = {})
+        return jsonify(response_dict)
+    #############################################################################################
+    
+
     try:
         request_json = request.json
         logger_bp_users.info(f"request_json: {request_json}")
@@ -350,6 +363,14 @@ def get_reset_password_token():
         logger_bp_users.info(f"{type(e).__name__}: {e}")
         response = jsonify({"error": str(e)})
         return make_response(response, 400)
+
+
+    if current_app.config.get('WS_API_PASSWORD') != request_json.get('ws_api_password'):
+        response_dict = {}
+        response_dict['alert_title'] = ""
+        response_dict['alert_message'] = f"Requests not from What Sticks Platform applications will not be supported."
+
+        return jsonify(response_dict)
 
     # if request.method == 'POST':
     # formDict = request.form.to_dict()
@@ -361,7 +382,7 @@ def get_reset_password_token():
         send_reset_email(user)
         response_dict = {}
         response_dict['alert_title'] = "Success"
-        response_dict['alert_message'] = f"email sent to: {email} with reset information"
+        response_dict['alert_message'] = f"Email sent to {email} with reset information"
         return jsonify(response_dict)
 
     else:

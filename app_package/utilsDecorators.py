@@ -24,9 +24,6 @@ logger_utilDecorators.addHandler(file_handler)
 logger_utilDecorators.addHandler(stream_handler)
 
 
-# users = Blueprint('users',__name__)
-
-
 
 def token_required(f):
     @wraps(f)
@@ -65,3 +62,18 @@ def token_required(f):
         return f(current_user, *args, **kwargs)
     
     return decorated
+
+
+def response_dict_tech_difficulties_alert(response_dict):
+    
+    if current_app.config.get('ACTIVATE_TECHNICAL_DIFFICULTIES_ALERT'):
+        logger_utilDecorators.info('######################################################################################')
+        logger_utilDecorators.info('###########   ACTIVATE_TECHNICAL_DIFFICULTIES_ALERT is restricting users   ###########')
+        logger_utilDecorators.info('######################################################################################')
+        response_dict['alert_title'] = "Temporary Service Interruption"
+        response_dict['alert_message'] = (
+            "We're currently experiencing some technical difficulties and are unable to process your request. "
+            "As a small team committed to your wellness journey, we're working tirelessly to resolve this. "
+            "Thank you for your patience and support. "
+        )
+    return response_dict
