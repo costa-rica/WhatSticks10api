@@ -134,7 +134,7 @@ def register():
     response_dict = {}
 
     if request_json.get('new_email') in ("", None) or request_json.get('new_password') in ("" , None):
-        # return jsonify({"message": f"User must have email and password"})
+        logger_bp_users.info(f"- failed register no email or password -")
         response_dict["alert_title"] = f"User must have email and password"
         response_dict["alert_message"] = f""
         response_dict = response_dict_tech_difficulties_alert(response_dict = {})
@@ -143,6 +143,7 @@ def register():
     user_exists = sess.query(Users).filter_by(email= request_json.get('new_email')).first()
 
     if user_exists:
+        logger_bp_users.info(f"- failed register user already exists -")
         response_dict["alert_title"] = f"User already exists"
         response_dict["alert_message"] = f"Try loggining in"
         response_dict = response_dict_tech_difficulties_alert(response_dict = {})
@@ -159,22 +160,12 @@ def register():
             setattr(new_user, "password", hash_pw)
         elif key == "new_email":
             setattr(new_user, "email", request_json.get('new_email'))
-        # elif key == "lat":
-        #     lat = float(request_json.get('lat'))
-        #     setattr(new_user, "lat", lat)
-        # elif key == "lon":
-        #     lon = float(request_json.get('lon'))
-        #     setattr(new_user, "lon", lon)
 
-
-    # timezone_string = convert_lat_lon_to_timezone_string(lat, lon)
-    # # defaults to "Etc/GMT"
-    # if timezone_string != "Timezone could not be determined":
-    #     setattr(new_user, "timezone", timezone_string)
     setattr(new_user, "timezone", "Etc/GMT")
 
     sess.add(new_user)
     sess.commit()
+    logger_bp_users.info(f"- Successfully registered {new_user.email} as user id: {new_user.id}  -")
 
     if request_json.get('new_email') != "nrodrig1@gmail.com":
         send_confirm_email(request_json.get('new_email'))
@@ -185,7 +176,7 @@ def register():
     response_dict["username"] = f"{new_user.username}"
     response_dict["alert_title"] = f"Success!"
     response_dict["alert_message"] = f""
-
+    logger_bp_users.info(f"- Successfully registered response_dict: {response_dict}  -")
     return jsonify(response_dict)
 
         
