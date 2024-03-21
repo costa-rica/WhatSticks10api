@@ -172,9 +172,13 @@ def register():
         logger_bp_users.info(f"- Successfully registered {new_user.email} as user id: {new_user.id}  -")
 
         ### Expire Website session:
-        base_url_local_website = current_app.config.get('WEB_URL')
+        logger_bp_users.info(f"- requesting What Sticks 11 Web to expire session -")
+        base_url_website = current_app.config.get('WEB_URL')
+        logger_bp_users.info(f"- base_url_website: {base_url_website} -")
         payload_expire_website = {'ws_api_password': current_app.config.get('WS_API_PASSWORD')}
-        response_expire_website = requests.get(base_url_local_website + '/expire_session', json=payload_expire_website)
+        response_expire_website = requests.get(base_url_website + '/expire_session', json=payload_expire_website)
+        logger_bp_users.info(f"-  What Sticks 11 Web response: {response_expire_website.status_code} -")
+        logger_bp_users.info(f"-  What Sticks 11 Web response: {response_expire_website.json()} -")
 
         if request_json.get('new_email') != "nrodrig1@gmail.com":
             send_confirm_email(request_json.get('new_email'))
@@ -335,9 +339,13 @@ def delete_user(current_user):
     deleted_records += delete_user_from_users_table[0]
 
     ### Expire Website session:
-    base_url_local_website = current_app.config.get('WEB_URL')
+    logger_bp_users.info(f"- requesting What Sticks 11 Web to expire session -")
+    base_url_website = current_app.config.get('WEB_URL')
+    logger_bp_users.info(f"- base_url_website: {base_url_website} -")
     payload_expire_website = {'ws_api_password': current_app.config.get('WS_API_PASSWORD')}
-    response_expire_website = requests.get(base_url_local_website + '/expire_session', json=payload_expire_website)
+    response_expire_website = requests.get(base_url_website + '/expire_session', json=payload_expire_website)
+    logger_bp_users.info(f"-  What Sticks 11 Web response: {response_expire_website.status_code} -")
+    logger_bp_users.info(f"-  What Sticks 11 Web response: {response_expire_website.json()} -")
 
     response_dict = {}
     response_dict['message'] = "Successful deletion."
