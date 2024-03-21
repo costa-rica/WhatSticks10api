@@ -17,6 +17,7 @@ from app_package.bp_users.utils import send_confirm_email, send_reset_email, del
 from sqlalchemy import desc
 from ws_utilities import convert_lat_lon_to_timezone_string, convert_lat_lon_to_city_country, \
     find_user_location, add_user_loc_day_process
+import requests
 
 
 formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
@@ -333,6 +334,10 @@ def delete_user(current_user):
 
     deleted_records += delete_user_from_users_table[0]
 
+    ### Expire Website session:
+    base_url_local_website = current_app.config.get('WEB_URL')
+    payload_expire_website = {'ws_api_password': current_app.config.get('WS_API_PASSWORD')}
+    response_expire_website = requests.get(base_url_local_website + '/expire_session', json=payload_expire_website)
 
     response_dict = {}
     response_dict['message'] = "Successful deletion."
