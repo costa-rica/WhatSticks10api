@@ -1,6 +1,6 @@
 from flask import Blueprint
 from flask import request, jsonify, make_response, current_app
-from ws_models import sess, Users, OuraSleepDescriptions, OuraToken
+from ws_models import session_scope, Users, OuraSleepDescriptions, OuraToken
 from werkzeug.security import generate_password_hash, check_password_hash #password hashing
 import bcrypt
 from datetime import datetime
@@ -52,8 +52,9 @@ def add_oura_token(current_user):
     new_oura_token = request_data.get('oura_token')
     logger_bp_oura.info(f'new_oura_token: {new_oura_token}')
     new_token_record = OuraToken(token=new_oura_token, user_id=current_user.id)
-    sess.add(new_token_record)
-    sess.commit()
+    with session_scope() as session:
+        session.add(new_token_record)
+    
     response_dict = {}
     response_dict["message"] = f"Successfully added token for {current_user.email} !"
     return jsonify(response_dict)
@@ -90,7 +91,8 @@ def add_oura_sleep_sessions(current_user):
     else:
         logger_bp_oura.info(f"No file named: {os.path.join(current_app.config.get('DIR_DB_AUX_OURA_SLEEP_RESPONSES'),file_name_oura_json)}")
         # get user's token
-        OURA_API_TOKEN =  sess.query(OuraToken).filter_by(user_id=current_user.id).first().token
+        with session_scope() as session:
+            OURA_API_TOKEN =  session.query(OuraToken).filter_by(user_id=current_user.id).first().token
         # call oura
         response_oura_sleep = requests.get(current_app.config.get('OURA_API_URL_BASE'), headers={"Authorization": "Bearer " + OURA_API_TOKEN})
 

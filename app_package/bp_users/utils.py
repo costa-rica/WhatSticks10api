@@ -1,6 +1,6 @@
 from flask import current_app, url_for
 import json
-from ws_models import sess, Users, Locations
+from ws_models import session_scope, Users, Locations, UserLocationDay
 from flask_mail import Message
 from app_package import mail
 import os
@@ -10,7 +10,6 @@ from logging.handlers import RotatingFileHandler
 import pandas as pd
 import requests
 from datetime import datetime 
-from ws_models import sess, UserLocationDay, Locations
 
 
 #Setting up Logger
@@ -117,14 +116,14 @@ def delete_user_from_table(current_user, table):
     count_deleted_rows = 0
     error = None
     try:
-        if table.__tablename__ != "users":
-            count_deleted_rows = sess.query(table).filter_by(user_id = current_user.id).delete()
-        else:
-            count_deleted_rows = sess.query(table).filter_by(id = current_user.id).delete()
-        sess.commit()
-        response_message = f"Successfully deleted {count_deleted_rows} records from {table.__tablename__}"
+        with session_scope() as session:
+            if table.__tablename__ != "users":
+                count_deleted_rows = session.query(table).filter_by(user_id = current_user.id).delete()
+            else:
+                count_deleted_rows = session.query(table).filter_by(id = current_user.id).delete()
+
+            response_message = f"Successfully deleted {count_deleted_rows} records from {table.__tablename__}"
     except Exception as e:
-        sess.rollback()
         error_message = f"Failed to delete data from {table.__tablename__}, error: {e}"
         logger_bp_users.info(error_message)
         error = e

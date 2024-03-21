@@ -2,7 +2,7 @@ from functools import wraps
 from flask import request, jsonify,current_app
 # from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous.url_safe import URLSafeTimedSerializer#new 2023
-from ws_models import sess, Users
+from ws_models import session_scope, Users
 import logging
 import os
 from logging.handlers import RotatingFileHandler
@@ -40,26 +40,29 @@ def token_required(f):
         if not token:
             logger_utilDecorators.info(f'- no token -')
             return jsonify({'message': 'Token is missing'}), 401
-        
-        try:
-            serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
-            decrypted_token_dict = serializer.loads(token)
-            logger_utilDecorators.info(f'- decrypted_token_dict: {decrypted_token_dict} -')
-            logger_utilDecorators.info('----')
-            logger_utilDecorators.info(decrypted_token_dict['user_id'])
-            logger_utilDecorators.info(sess.get(Users,int(decrypted_token_dict['user_id'])))
-            logger_utilDecorators.info('----')
-            current_user = sess.get(Users,int(decrypted_token_dict['user_id']))
-            logger_utilDecorators.info(f'- token decrypted correctly -')
-        # except:
-        #     logger_utilDecorators.info(f'- token NOT decrypted correctly -')
-        #     return jsonify({'message': 'Token is invalid'}), 401
-        except Exception as e:
-            logger_utilDecorators.info(f"- token NOT decrypted correctly -")
-            logger_utilDecorators.info(f"- {type(e).__name__}: {e} -")
-            return jsonify({'message': 'Token is invalid'}), 401
-        
-        return f(current_user, *args, **kwargs)
+        with session_scope() as session:
+            try:
+                serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+                decrypted_token_dict = serializer.loads(token)
+                logger_utilDecorators.info(f'- decrypted_token_dict: {decrypted_token_dict} -')
+                logger_utilDecorators.info('----')
+                logger_utilDecorators.info(decrypted_token_dict['user_id'])
+                logger_utilDecorators.info(f"type: {type(decrypted_token_dict['user_id'])}")
+                # with session_scope() as session:
+                # logger_utilDecorators.info(session.get(Users,int(decrypted_token_dict['user_id'])))
+                logger_utilDecorators.info(session.get(Users,decrypted_token_dict['user_id']))
+                logger_utilDecorators.info('----')
+                current_user = session.get(Users,int(decrypted_token_dict['user_id']))
+                logger_utilDecorators.info(f'- token decrypted correctly -')
+            # except:
+            #     logger_utilDecorators.info(f'- token NOT decrypted correctly -')
+            #     return jsonify({'message': 'Token is invalid'}), 401
+            except Exception as e:
+                logger_utilDecorators.info(f"- token NOT decrypted correctly -")
+                logger_utilDecorators.info(f"- {type(e).__name__}: {e} -")
+                return jsonify({'message': 'Token is invalid'}), 401
+            
+            return f(current_user, *args, **kwargs)
     
     return decorated
 

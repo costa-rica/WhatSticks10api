@@ -1,6 +1,6 @@
 from flask import Blueprint
 from flask import request, jsonify, make_response, current_app
-from ws_models import sess, Users, OuraToken, OuraSleepDescriptions, AppleHealthQuantityCategory, \
+from ws_models import session_scope, Users, OuraToken, OuraSleepDescriptions, AppleHealthQuantityCategory, \
     AppleHealthWorkout, UserLocationDay, Locations
 from werkzeug.security import generate_password_hash, check_password_hash #password hashing
 import bcrypt
@@ -64,45 +64,47 @@ def login():
     if not auth or not auth.username or not auth.password:
         logger_bp_users.info(f"- /login failed: if not auth or not auth.username or not auth.password")
         return make_response('Could not verify', 401)
-
-    user = sess.query(Users).filter_by(email= auth.username).first()
-
-    if not user:
-        logger_bp_users.info(f"- /login failed: if not user:")
-        return make_response('Could not verify - user not found', 401)
     
-    if auth.password:
-        # if bcrypt.checkpw(auth.password.encode(), user.password):
-        if bcrypt.checkpw(auth.password.encode(), user.password.encode()):
-            serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    with session_scope() as session:
+        user = session.query(Users).filter_by(email=auth.username).first()
 
-            user_object_for_swift_app = {}
-            user_object_for_swift_app['id'] = str(user.id)
-            user_object_for_swift_app['email'] = user.email
-            user_object_for_swift_app['username'] = user.username
-            # cannot return password because it is encrypted
-            # user_object_for_swift_app['password'] = "test"
-            user_object_for_swift_app['token'] = serializer.dumps({'user_id': user.id})
-            user_object_for_swift_app['timezone'] = user.timezone
-            user_object_for_swift_app['location_permission'] = str(user.location_permission)
-            user_object_for_swift_app['location_reoccuring_permission'] = str(user.location_reoccuring_permission)
-            
-            # last_Location = sess.query(UserLocationDay).filter_by(user_id=user.id)
-            latest_entry = sess.query(UserLocationDay).filter(UserLocationDay.user_id == user.id) \
-                            .order_by(desc(UserLocationDay.date_time_utc_user_check_in)).first()
-            if latest_entry != None:
-                user_object_for_swift_app['last_location_date'] = str(latest_entry.date_time_utc_user_check_in)[:10]
-            oura_token_obj = sess.query(OuraToken).filter_by(user_id=user.id).first()
-            if oura_token_obj and oura_token_obj.token is not None:
-                user_object_for_swift_app['oura_token'] = oura_token_obj.token
-            
-            response_dict = {}
-            response_dict['alert_title'] = "Success"
-            response_dict['alert_message'] = ""
-            response_dict['user'] = user_object_for_swift_app
+        if not user:
+            logger_bp_users.info(f"- /login failed: if not user:")
+            return make_response('Could not verify - user not found', 401)
 
-            logger_bp_users.info(f"- response_dict: {response_dict} -")
-            return jsonify(response_dict)
+        if auth.password:
+            if bcrypt.checkpw(auth.password.encode(), user.password.encode()):
+                serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+
+                user_object_for_swift_app = {
+                    'id': str(user.id),
+                    'email': user.email,
+                    'username': user.username,
+                    'token': serializer.dumps({'user_id': user.id}),
+                    'timezone': user.timezone,
+                    'location_permission': str(user.location_permission),
+                    'location_reoccuring_permission': str(user.location_reoccuring_permission),
+                }
+
+                latest_entry = session.query(UserLocationDay).filter(
+                    UserLocationDay.user_id == user.id
+                ).order_by(desc(UserLocationDay.date_time_utc_user_check_in)).first()
+
+                if latest_entry is not None:
+                    user_object_for_swift_app['last_location_date'] = str(latest_entry.date_time_utc_user_check_in)[:10]
+
+                oura_token_obj = session.query(OuraToken).filter_by(user_id=user.id).first()
+                if oura_token_obj and oura_token_obj.token is not None:
+                    user_object_for_swift_app['oura_token'] = oura_token_obj.token
+
+                response_dict = {
+                    'alert_title': "Success",
+                    'alert_message': "",
+                    'user': user_object_for_swift_app
+                }
+
+                logger_bp_users.info(f"- response_dict: {response_dict} -")
+                return jsonify(response_dict)
 
     logger_bp_users.info(f"- /login failed: if auth.password:")
     return make_response('Could not verify', 401)
@@ -139,8 +141,8 @@ def register():
         response_dict["alert_message"] = f""
         response_dict = response_dict_tech_difficulties_alert(response_dict = {})
         return jsonify(response_dict)
-
-    user_exists = sess.query(Users).filter_by(email= request_json.get('new_email')).first()
+    with session_scope() as session:
+        user_exists = session.query(Users).filter_by(email= request_json.get('new_email')).first()
 
     if user_exists:
         logger_bp_users.info(f"- failed register user already exists -")
@@ -150,34 +152,35 @@ def register():
         return jsonify(response_dict)
 
     hash_pw = bcrypt.hashpw(request_json.get('new_password').encode(), salt)
-    new_user = Users()
+    with session_scope() as session:
+        new_user = Users()
 
-    # lat = 999.999
-    # lon = 999.999
+        # lat = 999.999
+        # lon = 999.999
 
-    for key, value in request_json.items():
-        if key == "new_password":
-            setattr(new_user, "password", hash_pw)
-        elif key == "new_email":
-            setattr(new_user, "email", request_json.get('new_email'))
+        for key, value in request_json.items():
+            if key == "new_password":
+                setattr(new_user, "password", hash_pw)
+            elif key == "new_email":
+                setattr(new_user, "email", request_json.get('new_email'))
 
-    setattr(new_user, "timezone", "Etc/GMT")
+        setattr(new_user, "timezone", "Etc/GMT")
+    # with session_scope() as session:
+        session.add(new_user)
+    
+        logger_bp_users.info(f"- Successfully registered {new_user.email} as user id: {new_user.id}  -")
 
-    sess.add(new_user)
-    sess.commit()
-    logger_bp_users.info(f"- Successfully registered {new_user.email} as user id: {new_user.id}  -")
+        if request_json.get('new_email') != "nrodrig1@gmail.com":
+            send_confirm_email(request_json.get('new_email'))
 
-    if request_json.get('new_email') != "nrodrig1@gmail.com":
-        send_confirm_email(request_json.get('new_email'))
-
-    response_dict = {}
-    response_dict["message"] = f"new user created: {request_json.get('new_email')}"
-    response_dict["id"] = f"{new_user.id}"
-    response_dict["username"] = f"{new_user.username}"
-    response_dict["alert_title"] = f"Success!"
-    response_dict["alert_message"] = f""
-    logger_bp_users.info(f"- Successfully registered response_dict: {response_dict}  -")
-    return jsonify(response_dict)
+        response_dict = {}
+        response_dict["message"] = f"new user created: {request_json.get('new_email')}"
+        response_dict["id"] = f"{new_user.id}"
+        response_dict["username"] = f"{new_user.username}"
+        response_dict["alert_title"] = f"Success!"
+        response_dict["alert_message"] = f""
+        logger_bp_users.info(f"- Successfully registered response_dict: {response_dict}  -")
+        return jsonify(response_dict)
 
         
 # this get's sent at login
@@ -203,7 +206,8 @@ def send_data_source_objects(current_user):
             # keys to data_source_object_oura must match WSiOS DataSourceObject
             # data_source_object_oura={}
             # data_source_object_oura['name']="Oura Ring"
-            # record_count_oura = sess.query(OuraSleepDescriptions).filter_by(user_id=current_user.id).all()
+            # with session_scope() as session:
+            #   record_count_oura = session.query(OuraSleepDescriptions).filter_by(user_id=current_user.id).all()
             # data_source_object_oura['recordCount']="{:,}".format(len(record_count_oura))
             # list_data_source_objects.append(data_source_object_oura)
 
@@ -211,7 +215,8 @@ def send_data_source_objects(current_user):
             # keys to data_source_object_apple_health must match WSiOS DataSourceObject
             data_source_object_apple_health={}
             data_source_object_apple_health['name']="Apple Health Data"
-            record_count_apple_health = sess.query(AppleHealthQuantityCategory).filter_by(user_id=current_user.id).all()
+            with session_scope() as session:
+                record_count_apple_health = session.query(AppleHealthQuantityCategory).filter_by(user_id=current_user.id).all()
             data_source_object_apple_health['recordCount']="{:,}".format(len(record_count_apple_health))
             # apple_health_record_count, earliest_date_str = get_apple_health_count_date(current_user.id)
             # data_source_object_apple_health['recordCount'] = apple_health_record_count
@@ -366,22 +371,23 @@ def get_reset_password_token():
     # if request.method == 'POST':
     # formDict = request.form.to_dict()
     email = request_json.get('email')
-    user = sess.query(Users).filter_by(email=email).first()
-    logger_bp_users.info(f"- user: {user} -")
-    if user:
-        logger_bp_users.info('Email reaquested to reset: ', email)
-        send_reset_email(user)
-        response_dict = {}
-        response_dict['alert_title'] = "Success"
-        response_dict['alert_message'] = f"Email sent to {email} with reset information"
-        return jsonify(response_dict)
+    with session_scope() as session:
+        user = session.query(Users).filter_by(email=email).first()
+        logger_bp_users.info(f"- user: {user} -")
+        if user:
+            logger_bp_users.info('Email reaquested to reset: ', email)
+            send_reset_email(user)
+            response_dict = {}
+            response_dict['alert_title'] = "Success"
+            response_dict['alert_message'] = f"Email sent to {email} with reset information"
+            return jsonify(response_dict)
 
-    else:
-        response_dict = {}
-        response_dict['alert_title'] = "Success"
-        response_dict['alert_message'] = f" {email} has no account with What Sticks"
+        else:
+            response_dict = {}
+            response_dict['alert_title'] = "Success"
+            response_dict['alert_message'] = f" {email} has no account with What Sticks"
 
-        return jsonify(response_dict)
+            return jsonify(response_dict)
 
 
 @bp_users.route('/reset_password', methods = ["GET"])
@@ -398,14 +404,23 @@ def reset_password(current_user):
         return make_response(response, 400)
 
     if current_user:
-        hash_pw = bcrypt.hashpw(request_json.get('password_text').encode(), salt)
-        current_user.password = hash_pw
-        sess.commit()
-
-        response_dict = {}
-        response_dict['alert_title'] = "Success"
-        response_dict['alert_message'] = f" {current_user.username}'s password has been reset"
-
+        try:
+            with session_scope() as session:
+                # Assuming current_user is correctly tied to the session, directly update its properties
+                hash_pw = bcrypt.hashpw(request_json.get('password_text').encode(), salt)
+                current_user.password = hash_pw
+                session.merge(current_user)  # This may be necessary if current_user is detached
+                # session.commit() is not needed here since session_scope() handles it
+            response_dict = {
+                'alert_title': "Success",
+                'alert_message': f"{current_user.username}'s password has been reset"
+            }
+        except Exception as e:
+            logger_bp_users.info(f"Error resetting password: {type(e).__name__}: {e}")
+            response_dict = {
+                'alert_title': "Failed",
+                'alert_message': "Password reset failed due to an error."
+            }
         return jsonify(response_dict)
     else:
         response_dict = {}
@@ -431,10 +446,10 @@ def update_user_location_with_lat_lon(current_user):
     #update permission
     location_permission = request_json.get('location_permission') == "True"
     location_reoccuring_permission = request_json.get('location_reoccuring_permission') == "True"
-
-    current_user.location_permission=location_permission
-    current_user.location_reoccuring_permission=location_reoccuring_permission
-    sess.commit()
+    with session_scope() as session:
+        current_user.location_permission=location_permission
+        current_user.location_reoccuring_permission=location_reoccuring_permission
+        # No explicit session.merge(current_user) needed here
 
     response_dict = {}
 
@@ -454,10 +469,13 @@ def update_user_location_with_lat_lon(current_user):
     longitude = float(request_json.get('longitude'))
 
     timezone_str = convert_lat_lon_to_timezone_string(latitude, longitude)
-    current_user.lat = latitude
-    current_user.lon = longitude
-    current_user.timezone = timezone_str
-    sess.commit()
+    # No explicit session.merge(current_user) needed here
+    with session_scope() as session:
+        current_user.lat = latitude
+        current_user.lon = longitude
+        current_user.timezone = timezone_str
+        # sess .commit() <-- no longer needed because session_scope() commits the changes.
+        # No explicit session.merge(current_user) needed here
 
     # Get the current datetime
     current_datetime = datetime.now()
@@ -467,8 +485,8 @@ def update_user_location_with_lat_lon(current_user):
 
     # Add to UserLocationDay (and Location, if necessary)
     location_id = add_user_loc_day_process(current_user.id,latitude, longitude, formatted_datetime)
-
-    user_location = sess.get(Locations, location_id)
+    with session_scope() as session:
+        user_location = session.get(Locations, location_id)
     response_dict["message"] = f"Updated user location in UserLocDay Table with {user_location.city}, {user_location.country}"
 
     return jsonify(response_dict)
@@ -487,38 +505,38 @@ def update_user_location_with_user_location_json(current_user):
         logger_bp_users.info(f"{type(e).__name__}: {e}")
         response = jsonify({"error": str(e)})
         return make_response(response, 400)
+    with session_scope() as session:
+        user_location_list = request_json.get('user_location')
+        timestamp_str = request_json.get('timestamp_utc')
+        user_loction_filename = f"user_location-user_id{current_user.id}.json"
+        json_data_path_and_name = os.path.join(current_app.config.get('USER_LOCATION_JSON'),user_loction_filename)
 
-    user_location_list = request_json.get('user_location')
-    timestamp_str = request_json.get('timestamp_utc')
-    user_loction_filename = f"user_location-user_id{current_user.id}.json"
-    json_data_path_and_name = os.path.join(current_app.config.get('USER_LOCATION_JSON'),user_loction_filename)
+        with open(json_data_path_and_name, 'w') as file:
+            json.dump(user_location_list, file, indent=4)
+        
+        try:
+            for location in user_location_list:
+                dateTimeUtc = location.get('dateTimeUtc')
+                latitude = location.get('latitude')
+                longitude = location.get('longitude')
+                add_user_loc_day_process(current_user.id,latitude, longitude, dateTimeUtc)
 
-    with open(json_data_path_and_name, 'w') as file:
-        json.dump(user_location_list, file, indent=4)
-    
-    try:
-        for location in user_location_list:
-            dateTimeUtc = location.get('dateTimeUtc')
-            latitude = location.get('latitude')
-            longitude = location.get('longitude')
-            add_user_loc_day_process(current_user.id,latitude, longitude, dateTimeUtc)
+            logger_bp_users.info(f"- successfully added user_location.json data to UserLocationDay -")
 
-        logger_bp_users.info(f"- successfully added user_location.json data to UserLocationDay -")
+            response_dict = {}
+            response_dict['alert_title'] = "Success!"# < -- This is expected response for WSiOS to delete old user_locations.json
+            response_dict['alert_message'] = ""
 
-        response_dict = {}
-        response_dict['alert_title'] = "Success!"# < -- This is expected response for WSiOS to delete old user_locations.json
-        response_dict['alert_message'] = ""
+            return jsonify(response_dict)
+        except Exception as e:
+            logger_bp_users.info(f"- Error trying to add user_location.json from iOS -")
+            logger_bp_users.info(f"- {type(e).__name__}: {e} -")
 
-        return jsonify(response_dict)
-    except Exception as e:
-        logger_bp_users.info(f"- Error trying to add user_location.json from iOS -")
-        logger_bp_users.info(f"- {type(e).__name__}: {e} -")
+            response_dict = {}
+            response_dict['alert_title'] = "Failed"
+            response_dict['alert_message'] = "Something went wrong adding user's location to database."
 
-        response_dict = {}
-        response_dict['alert_title'] = "Failed"
-        response_dict['alert_message'] = "Something went wrong adding user's location to database."
-
-        return jsonify(response_dict)
+            return jsonify(response_dict)
 
 
 

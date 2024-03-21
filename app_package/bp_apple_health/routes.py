@@ -1,6 +1,6 @@
 from flask import Blueprint
 from flask import request, jsonify, make_response, current_app
-from ws_models import sess, Users, AppleHealthQuantityCategory, AppleHealthWorkout
+from ws_models import session_scope, Users, AppleHealthQuantityCategory, AppleHealthWorkout
 from werkzeug.security import generate_password_hash, check_password_hash #password hashing
 import bcrypt
 from datetime import datetime
@@ -218,7 +218,8 @@ def apple_health_subprocess_complete():
 
         count_of_records_added_to_db = request.json.get('count_of_records_added_to_db')
         user_id = request.json.get('user_id')
-        user_obj = sess.get(Users,int(user_id))
+        with session_scope() as session:
+            user_obj = session.get(Users,int(user_id))
         
         if user_obj.email != "nrodrig1@gmail.com":
             send_confirm_email(user_obj.email, count_of_records_added_to_db)
