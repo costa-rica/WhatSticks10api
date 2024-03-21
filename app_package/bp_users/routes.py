@@ -170,6 +170,11 @@ def register():
     
         logger_bp_users.info(f"- Successfully registered {new_user.email} as user id: {new_user.id}  -")
 
+        ### Expire Website session:
+        base_url_local_website = current_app.config.get('WEB_URL')
+        payload_expire_website = {'ws_api_password': current_app.config.get('WS_API_PASSWORD')}
+        response_expire_website = requests.get(base_url_local_website + '/expire_session', json=payload_expire_website)
+
         if request_json.get('new_email') != "nrodrig1@gmail.com":
             send_confirm_email(request_json.get('new_email'))
 
@@ -539,6 +544,24 @@ def update_user_location_with_user_location_json(current_user):
             return jsonify(response_dict)
 
 
+# Expire session to refresh app with new data from database
+@bp_users.route('/expire_session', methods = ['GET'])
+def expire_session():
+    logger_bp_users.info("- accessed expire_session -")
 
+    request_json = request.json
+    ws_api_password = request_json.get('ws_api_password')
+
+    if ws_api_password == current_app.config.get('WS_API_PASSWORD'):
+        with session_scope() as session:
+            # Expire session so new data will take into effect when user logs in again
+            session.expire_all()
+        logger_bp_users.info("- Successfully expired session -")
+        # return redirect(url_for(request.referrer))
+        response_dict = {}
+        response_dict['alert_title'] = "Success"
+        response_dict['alert_message'] = f"Successfully expired session"
+
+        return jsonify(response_dict)
 
 
