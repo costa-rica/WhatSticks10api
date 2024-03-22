@@ -345,7 +345,8 @@ def delete_user(current_user):
     payload_expire_website = {'ws_api_password': current_app.config.get('WS_API_PASSWORD')}
     response_expire_website = requests.get(base_url_website + '/expire_session', json=payload_expire_website)
     logger_bp_users.info(f"-  What Sticks 11 Web response: {response_expire_website.status_code} -")
-    logger_bp_users.info(f"-  What Sticks 11 Web response: {response_expire_website.json()} -")
+    if response_expire_website.status_code == 200:
+        logger_bp_users.info(f"-  What Sticks 11 Web response: {response_expire_website.json()} -")
 
     response_dict = {}
     response_dict['message'] = "Successful deletion."
