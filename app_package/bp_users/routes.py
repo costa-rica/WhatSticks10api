@@ -17,25 +17,11 @@ from app_package.bp_users.utils import send_confirm_email, send_reset_email, del
 from sqlalchemy import desc
 from ws_utilities import convert_lat_lon_to_timezone_string, convert_lat_lon_to_city_country, \
     find_user_location, add_user_loc_day_process
+import requests
+from app_package._common.utilities import custom_logger, wrap_up_session
 
-
-formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
-formatter_terminal = logging.Formatter('%(asctime)s:%(filename)s:%(name)s:%(message)s')
-
-logger_bp_users = logging.getLogger(__name__)
-logger_bp_users.setLevel(logging.DEBUG)
-
-file_handler = RotatingFileHandler(os.path.join(os.environ.get('API_ROOT'),'logs','users.log'), mode='a', maxBytes=5*1024*1024,backupCount=2)
-file_handler.setFormatter(formatter)
-
-stream_handler = logging.StreamHandler()
-stream_handler.setFormatter(formatter_terminal)
-
-logger_bp_users.addHandler(file_handler)
-logger_bp_users.addHandler(stream_handler)
-
+logger_bp_users = custom_logger('bp_users.log')
 bp_users = Blueprint('bp_users', __name__)
-logger_bp_users.info(f'- WhatSticks10 API users Bluprints initialized')
 
 salt = bcrypt.gensalt()
 
@@ -81,13 +67,11 @@ def login():
             user_object_for_swift_app['email'] = user.email
             user_object_for_swift_app['username'] = user.username
             # cannot return password because it is encrypted
-            # user_object_for_swift_app['password'] = "test"
             user_object_for_swift_app['token'] = serializer.dumps({'user_id': user.id})
             user_object_for_swift_app['timezone'] = user.timezone
             user_object_for_swift_app['location_permission'] = str(user.location_permission)
             user_object_for_swift_app['location_reoccuring_permission'] = str(user.location_reoccuring_permission)
             
-            # last_Location = sess.query(UserLocationDay).filter_by(user_id=user.id)
             latest_entry = sess.query(UserLocationDay).filter(UserLocationDay.user_id == user.id) \
                             .order_by(desc(UserLocationDay.date_time_utc_user_check_in)).first()
             if latest_entry != None:
@@ -137,7 +121,6 @@ def register():
         logger_bp_users.info(f"- failed register no email or password -")
         response_dict["alert_title"] = f"User must have email and password"
         response_dict["alert_message"] = f""
-        response_dict = response_dict_tech_difficulties_alert(response_dict = {})
         return jsonify(response_dict)
 
     user_exists = sess.query(Users).filter_by(email= request_json.get('new_email')).first()
@@ -146,14 +129,10 @@ def register():
         logger_bp_users.info(f"- failed register user already exists -")
         response_dict["alert_title"] = f"User already exists"
         response_dict["alert_message"] = f"Try loggining in"
-        response_dict = response_dict_tech_difficulties_alert(response_dict = {})
         return jsonify(response_dict)
 
     hash_pw = bcrypt.hashpw(request_json.get('new_password').encode(), salt)
     new_user = Users()
-
-    # lat = 999.999
-    # lon = 999.999
 
     for key, value in request_json.items():
         if key == "new_password":
@@ -164,8 +143,14 @@ def register():
     setattr(new_user, "timezone", "Etc/GMT")
 
     sess.add(new_user)
-    sess.commit()
+    wrap_up_session(logger_bp_users)
     logger_bp_users.info(f"- Successfully registered {new_user.email} as user id: {new_user.id}  -")
+
+    # Send request to website to expire session so this user can sign in
+    base_url_dev_website = 'https://dev.what-sticks.com'
+    payload_expire_website = {'ws_api_password': current_app.config.get('WS_API_PASSWORD')}
+    response_expire_website = requests.get(current_app.config.get('WEB_URL') + '/expire_session', json=payload_expire_website)
+    logger_bp_users.info(f"- response_expire_website.status_code: {response_expire_website.status_code}  -")
 
     if request_json.get('new_email') != "nrodrig1@gmail.com":
         send_confirm_email(request_json.get('new_email'))

@@ -5,9 +5,9 @@ from werkzeug.security import generate_password_hash, check_password_hash #passw
 import bcrypt
 from datetime import datetime
 from itsdangerous.url_safe import URLSafeTimedSerializer#new 2023
-import logging
+# import logging
 import os
-from logging.handlers import RotatingFileHandler
+# from logging.handlers import RotatingFileHandler
 import json
 # import socket
 from app_package.utilsDecorators import token_required
@@ -16,22 +16,25 @@ from sqlalchemy.exc import SQLAlchemyError
 import pandas as pd
 from flask_mail import Message
 from app_package import mail
+from app_package._common.utilities import custom_logger, wrap_up_session
+
+logger_bp_apple_health = custom_logger('bp_apple_health.log')
 
 
-formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
-formatter_terminal = logging.Formatter('%(asctime)s:%(filename)s:%(name)s:%(message)s')
+# formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
+# formatter_terminal = logging.Formatter('%(asctime)s:%(filename)s:%(name)s:%(message)s')
 
-logger_bp_apple_health = logging.getLogger(__name__)
-logger_bp_apple_health.setLevel(logging.DEBUG)
+# logger_bp_apple_health = logging.getLogger(__name__)
+# logger_bp_apple_health.setLevel(logging.DEBUG)
 
-file_handler = RotatingFileHandler(os.path.join(os.environ.get('API_ROOT'),'logs','oura.log'), mode='a', maxBytes=5*1024*1024,backupCount=2)
-file_handler.setFormatter(formatter)
+# file_handler = RotatingFileHandler(os.path.join(os.environ.get('API_ROOT'),'logs','oura.log'), mode='a', maxBytes=5*1024*1024,backupCount=2)
+# file_handler.setFormatter(formatter)
 
-stream_handler = logging.StreamHandler()
-stream_handler.setFormatter(formatter_terminal)
+# stream_handler = logging.StreamHandler()
+# stream_handler.setFormatter(formatter_terminal)
 
-logger_bp_apple_health.addHandler(file_handler)
-logger_bp_apple_health.addHandler(stream_handler)
+# logger_bp_apple_health.addHandler(file_handler)
+# logger_bp_apple_health.addHandler(stream_handler)
 
 bp_apple_health = Blueprint('bp_apple_health', __name__)
 

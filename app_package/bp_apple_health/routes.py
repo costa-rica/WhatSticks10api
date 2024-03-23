@@ -5,9 +5,9 @@ from werkzeug.security import generate_password_hash, check_password_hash #passw
 import bcrypt
 from datetime import datetime
 from itsdangerous.url_safe import URLSafeTimedSerializer#new 2023
-import logging
+# import logging
 import os
-from logging.handlers import RotatingFileHandler
+# from logging.handlers import RotatingFileHandler
 import json
 # import socket
 from app_package.utilsDecorators import token_required
@@ -19,21 +19,24 @@ from app_package.bp_apple_health.utils import add_apple_health_to_database, \
     send_confirm_email, apple_health_qty_cat_json_filename, apple_health_workouts_json_filename
 from app_package.bp_users.utils import delete_user_data_files, delete_user_from_table
 import subprocess
+from app_package._common.utilities import custom_logger, wrap_up_session
 
-formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
-formatter_terminal = logging.Formatter('%(asctime)s:%(filename)s:%(name)s:%(message)s')
+logger_bp_apple_health = custom_logger('bp_apple_health.log')
 
-logger_bp_apple_health = logging.getLogger(__name__)
-logger_bp_apple_health.setLevel(logging.DEBUG)
+# formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
+# formatter_terminal = logging.Formatter('%(asctime)s:%(filename)s:%(name)s:%(message)s')
 
-file_handler = RotatingFileHandler(os.path.join(os.environ.get('API_ROOT'),'logs','oura.log'), mode='a', maxBytes=5*1024*1024,backupCount=2)
-file_handler.setFormatter(formatter)
+# logger_bp_apple_health = logging.getLogger(__name__)
+# logger_bp_apple_health.setLevel(logging.DEBUG)
 
-stream_handler = logging.StreamHandler()
-stream_handler.setFormatter(formatter_terminal)
+# file_handler = RotatingFileHandler(os.path.join(os.environ.get('API_ROOT'),'logs','oura.log'), mode='a', maxBytes=5*1024*1024,backupCount=2)
+# file_handler.setFormatter(formatter)
 
-logger_bp_apple_health.addHandler(file_handler)
-logger_bp_apple_health.addHandler(stream_handler)
+# stream_handler = logging.StreamHandler()
+# stream_handler.setFormatter(formatter_terminal)
+
+# logger_bp_apple_health.addHandler(file_handler)
+# logger_bp_apple_health.addHandler(stream_handler)
 
 bp_apple_health = Blueprint('bp_apple_health', __name__)
 logger_bp_apple_health.info(f'- WhatSticks10 API users Bluprints initialized')

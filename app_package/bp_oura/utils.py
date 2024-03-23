@@ -3,23 +3,26 @@ import json
 import requests
 from flask import current_app
 from ws_models import sess, inspect, Users, OuraToken, OuraSleepDescriptions
-import logging
-from logging.handlers import RotatingFileHandler
+from app_package._common.utilities import custom_logger, wrap_up_session
 
-formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
-formatter_terminal = logging.Formatter('%(asctime)s:%(filename)s:%(name)s:%(message)s')
+logger_bp_oura = custom_logger('bp_oura.log')
+# import logging
+# from logging.handlers import RotatingFileHandler
 
-logger_bp_oura = logging.getLogger(__name__)
-logger_bp_oura.setLevel(logging.DEBUG)
+# formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
+# formatter_terminal = logging.Formatter('%(asctime)s:%(filename)s:%(name)s:%(message)s')
 
-file_handler = RotatingFileHandler(os.path.join(os.environ.get('API_ROOT'),'logs','oura.log'), mode='a', maxBytes=5*1024*1024,backupCount=2)
-file_handler.setFormatter(formatter)
+# logger_bp_oura = logging.getLogger(__name__)
+# logger_bp_oura.setLevel(logging.DEBUG)
 
-stream_handler = logging.StreamHandler()
-stream_handler.setFormatter(formatter_terminal)
+# file_handler = RotatingFileHandler(os.path.join(os.environ.get('API_ROOT'),'logs','oura.log'), mode='a', maxBytes=5*1024*1024,backupCount=2)
+# file_handler.setFormatter(formatter)
 
-logger_bp_oura.addHandler(file_handler)
-logger_bp_oura.addHandler(stream_handler)
+# stream_handler = logging.StreamHandler()
+# stream_handler.setFormatter(formatter_terminal)
+
+# logger_bp_oura.addHandler(file_handler)
+# logger_bp_oura.addHandler(stream_handler)
 
 
 def add_oura_sleep_to_OuraSleepDescriptions(user_id, token_id, response_oura_sleep):

@@ -11,28 +11,30 @@ import pandas as pd
 import requests
 from datetime import datetime 
 from ws_models import sess, UserLocationDay, Locations
+from app_package._common.utilities import custom_logger, wrap_up_session
+
+logger_bp_users = custom_logger('bp_users.log')
+
+# #Setting up Logger
+# formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
+# formatter_terminal = logging.Formatter('%(asctime)s:%(filename)s:%(name)s:%(message)s')
+
+# #initialize a logger
+# logger_bp_users = logging.getLogger(__name__)
+# logger_bp_users.setLevel(logging.DEBUG)
 
 
-#Setting up Logger
-formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
-formatter_terminal = logging.Formatter('%(asctime)s:%(filename)s:%(name)s:%(message)s')
+# #where do we store logging information
+# file_handler = RotatingFileHandler(os.path.join(os.environ.get('API_ROOT'),"logs",'users_routes.log'), mode='a', maxBytes=5*1024*1024,backupCount=2)
+# file_handler.setFormatter(formatter)
 
-#initialize a logger
-logger_bp_users = logging.getLogger(__name__)
-logger_bp_users.setLevel(logging.DEBUG)
+# #where the stream_handler will print
+# stream_handler = logging.StreamHandler()
+# stream_handler.setFormatter(formatter_terminal)
 
-
-#where do we store logging information
-file_handler = RotatingFileHandler(os.path.join(os.environ.get('API_ROOT'),"logs",'users_routes.log'), mode='a', maxBytes=5*1024*1024,backupCount=2)
-file_handler.setFormatter(formatter)
-
-#where the stream_handler will print
-stream_handler = logging.StreamHandler()
-stream_handler.setFormatter(formatter_terminal)
-
-# logger_sched.handlers.clear() #<--- This was useful somewhere for duplicate logs
-logger_bp_users.addHandler(file_handler)
-logger_bp_users.addHandler(stream_handler)
+# # logger_sched.handlers.clear() #<--- This was useful somewhere for duplicate logs
+# logger_bp_users.addHandler(file_handler)
+# logger_bp_users.addHandler(stream_handler)
 
 
 def send_reset_email(user):
