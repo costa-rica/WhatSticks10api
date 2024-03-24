@@ -1,5 +1,5 @@
 from flask import Flask
-# from ws_config import ConfigLocal, ConfigDev, ConfigProd
+# from ws_config import ConfigWorkstation, ConfigDev, ConfigProd
 from app_package.config import config
 import os
 import logging
@@ -69,7 +69,7 @@ def create_app(config_for_flask = config):
     create_folder(config_for_flask.RAW_FILES_FOR_DAILY_CSV)
     ############################################################################
     # Build MySQL database
-    Base.metadata.create_all(engine)
+    # Base.metadata.create_all(engine)
     logger_init.info(f"- MYSQL_USER: {config_for_flask.MYSQL_USER}")
     logger_init.info(f"- MYSQL_DATABASE_NAME: {config_for_flask.MYSQL_DATABASE_NAME}")
 

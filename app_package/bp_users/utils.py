@@ -71,7 +71,7 @@ def send_reset_email(user):
     # If you did not make this request, ignore email and there will be no change
     # '''
 def send_confirm_email(email):
-    if os.environ.get('FLASK_CONFIG_TYPE') != 'local':
+    if os.environ.get('FLASK_CONFIG_TYPE') != 'workstation':
         logger_bp_users.info(f"-- sending email to {email} --")
         msg = Message('Welcome to What Sticks!',
             sender=current_app.config.get('MAIL_USERNAME'),

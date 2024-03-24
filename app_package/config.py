@@ -1,5 +1,5 @@
 import os
-from ws_config import ConfigLocal, ConfigDev, ConfigProd
+from ws_config import ConfigWorkstation, ConfigDev, ConfigProd
 
 match os.environ.get('FLASK_CONFIG_TYPE'):
     case 'dev':
@@ -9,5 +9,5 @@ match os.environ.get('FLASK_CONFIG_TYPE'):
         config = ConfigProd()
         print('- exFlaskBlueprintFrameworkStarterWithLogin/app_pacakge/config: Production')
     case _:
-        config = ConfigLocal()
+        config = ConfigWorkstation()
         print('- exFlaskBlueprintFrameworkStarterWithLogin/app_pacakge/config: Local')

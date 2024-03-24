@@ -147,9 +147,10 @@ def register():
     logger_bp_users.info(f"- Successfully registered {new_user.email} as user id: {new_user.id}  -")
 
     # Send request to website to expire session so this user can sign in
-    base_url_dev_website = 'https://dev.what-sticks.com'
+    logger_bp_users.info(f"- Sending request locally to web/expire_session:  -")
+    logger_bp_users.info(f"- {current_app.config.get('WEB_URL_LOCAL') + '/expire_session'}  -")
     payload_expire_website = {'ws_api_password': current_app.config.get('WS_API_PASSWORD')}
-    response_expire_website = requests.get(current_app.config.get('WEB_URL') + '/expire_session', json=payload_expire_website)
+    response_expire_website = requests.get(current_app.config.get('WEB_URL_LOCAL') + '/expire_session', json=payload_expire_website)
     logger_bp_users.info(f"- response_expire_website.status_code: {response_expire_website.status_code}  -")
 
     if request_json.get('new_email') != "nrodrig1@gmail.com":
