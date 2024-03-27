@@ -146,12 +146,16 @@ def register():
     wrap_up_session(logger_bp_users)
     logger_bp_users.info(f"- Successfully registered {new_user.email} as user id: {new_user.id}  -")
 
-    # Send request to website to expire session so this user can sign in
-    logger_bp_users.info(f"- Sending request locally to web/expire_session:  -")
-    logger_bp_users.info(f"- {current_app.config.get('WEB_URL_LOCAL') + '/expire_session'}  -")
-    payload_expire_website = {'ws_api_password': current_app.config.get('WS_API_PASSWORD')}
-    response_expire_website = requests.get(current_app.config.get('WEB_URL_LOCAL') + '/expire_session', json=payload_expire_website)
-    logger_bp_users.info(f"- response_expire_website.status_code: {response_expire_website.status_code}  -")
+    try:
+        # Send request to website to expire session so this user can sign in
+        logger_bp_users.info(f"- Sending request locally to web/expire_session:  -")
+        logger_bp_users.info(f"- {current_app.config.get('WEB_URL_LOCAL') + '/expire_session'}  -")
+        payload_expire_website = {'ws_api_password': current_app.config.get('WS_API_PASSWORD')}
+        response_expire_website = requests.get(current_app.config.get('WEB_URL_LOCAL') + '/expire_session', json=payload_expire_website)
+        logger_bp_users.info(f"- response_expire_website.status_code: {response_expire_website.status_code}  -")
+    except Exception as e:
+        logger_bp_users.info(f"Website might not be runnning, or some other issue with /expire_session route.")
+        logger_bp_users.info(f"{type(e).__name__}: {e}")
 
     if request_json.get('new_email') != "nrodrig1@gmail.com":
         send_confirm_email(request_json.get('new_email'))

@@ -47,7 +47,7 @@ def send_reset_email(user):
     # Replace 'url_for' with the full external reset URL, appending the token as a query parameter
     base_url = website_url()
     reset_url = f"{base_url}/reset_password?token={token}"
-    # match os.environ.get('FLASK_CONFIG_TYPE'):
+    # match os.environ.get('WS_CONFIG_TYPE'):
     #     case 'dev':
     #         reset_url = f"https://dev.what-sticks.com/reset_password?token={token}"
     #     case 'prod':
@@ -71,7 +71,7 @@ def send_reset_email(user):
     # If you did not make this request, ignore email and there will be no change
     # '''
 def send_confirm_email(email):
-    if os.environ.get('FLASK_CONFIG_TYPE') != 'workstation':
+    if os.environ.get('WS_CONFIG_TYPE') != 'workstation':
         logger_bp_users.info(f"-- sending email to {email} --")
         msg = Message('Welcome to What Sticks!',
             sender=current_app.config.get('MAIL_USERNAME'),
@@ -164,7 +164,7 @@ def get_apple_health_count_date(user_id):
     return apple_health_record_count, earliest_date_str
 
 def website_url():
-    match os.environ.get('FLASK_CONFIG_TYPE'):
+    match os.environ.get('WS_CONFIG_TYPE'):
         case 'dev':
             base_url = f"https://dev.what-sticks.com"
         case 'prod':
