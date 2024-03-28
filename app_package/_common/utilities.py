@@ -3,6 +3,11 @@ import logging
 from logging.handlers import RotatingFileHandler
 import os
 
+# import os
+import json
+from datetime import datetime
+from flask import current_app, request
+
 
 def wrap_up_session(custom_logger):
     custom_logger.info("- accessed wrap_up_session -")
@@ -50,4 +55,37 @@ def custom_logger(logger_filename):
         logger.addHandler(stream_handler)
 
     return logger
+
+
+
+def save_request_data( request_data_to_save,route_path_for_name, user_id, path_to_folder_to_save, custom_logger):
+    ## NOTE: This is used just to check and reuse the JSON body
+    ## The resulting file of this funtion is not used by any other application and can be deleted.
+    
+    # Sanitize the path to remove leading slashes and replace remaining slashes with underscores
+    # sanitized_path = path.lstrip('/').replace('/', '_')
+    sanitized_route_path_for_name = route_path_for_name.lstrip('/').replace('/', '_')
+    
+    if request_data_to_save.get("dateStringTimeStamp") is not None:
+        timestamp = request_data_to_save.get("dateStringTimeStamp")
+    else:
+        # Get the current timestamp
+        timestamp = datetime.now().strftime('%Y%m%d-%H%M%S')
+    
+    # Construct the filename
+    filename = f"{sanitized_route_path_for_name}_userID_{user_id}_{timestamp}.json"
+    
+    # Get the directory from the app's configuration
+    # directory = current_app.config.get('APPLE_HEALTH_DIR')
+    if not os.path.exists(path_to_folder_to_save):
+        os.makedirs(path_to_folder_to_save)  # Create the directory if it doesn't exist
+    
+    # Full path for the file
+    file_path = os.path.join(path_to_folder_to_save, filename)
+    
+    # Write the request_data_to_save to the file
+    with open(file_path, 'w') as file:
+        json.dump(request_data_to_save, file)
+    
+    custom_logger.info(f"Saved data to {file_path}")  # Optional: print confirmation to the terminal
 

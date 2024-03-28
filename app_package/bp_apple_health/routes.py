@@ -19,24 +19,12 @@ from app_package.bp_apple_health.utils import add_apple_health_to_database, \
     send_confirm_email, apple_health_qty_cat_json_filename, apple_health_workouts_json_filename
 from app_package.bp_users.utils import delete_user_data_files, delete_user_from_table
 import subprocess
-from app_package._common.utilities import custom_logger, wrap_up_session
+from app_package._common.utilities import custom_logger, wrap_up_session, \
+    save_request_data
 
 logger_bp_apple_health = custom_logger('bp_apple_health.log')
 
-# formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
-# formatter_terminal = logging.Formatter('%(asctime)s:%(filename)s:%(name)s:%(message)s')
 
-# logger_bp_apple_health = logging.getLogger(__name__)
-# logger_bp_apple_health.setLevel(logging.DEBUG)
-
-# file_handler = RotatingFileHandler(os.path.join(os.environ.get('API_ROOT'),'logs','oura.log'), mode='a', maxBytes=5*1024*1024,backupCount=2)
-# file_handler.setFormatter(formatter)
-
-# stream_handler = logging.StreamHandler()
-# stream_handler.setFormatter(formatter_terminal)
-
-# logger_bp_apple_health.addHandler(file_handler)
-# logger_bp_apple_health.addHandler(stream_handler)
 
 bp_apple_health = Blueprint('bp_apple_health', __name__)
 logger_bp_apple_health.info(f'- WhatSticks10 API users Bluprints initialized')
@@ -167,9 +155,11 @@ def receive_apple_workouts_data(current_user):
     response_dict = {}
     try:
         request_json = request.json
+        save_request_data(request_json, request.path, current_user.id,
+                            current_app.config.get('APPLE_HEALTH_DIR'), logger_bp_apple_health)
     except Exception as e:
         response_dict['error':e]
-        response_dict['status':"httpBody data recieved not json not parse-able."]
+        response_dict['status':"http Body data recieved not json not parse-able."]
 
         logger_bp_apple_health.info(e)
         logger_bp_apple_health.info(f"- response_dict: {response_dict} -")
@@ -180,26 +170,23 @@ def receive_apple_workouts_data(current_user):
     time_stamp_str_for_json_file_name = request_json.get("dateStringTimeStamp")
     apple_health_workouts_json = request_json.get("arryAppleHealthWorkout")
     count_of_entries_sent_by_ios = len(apple_health_workouts_json)
-    # apple_health_workouts_data_request_json_file_name = f"{current_app.config.get('APPLE_HEALTH_WORKOUTS_FILENAME_PREFIX')}-user_id{current_user.id}-{time_stamp_str_for_apple_health_workouts_request_json_file_name}.json"
-    apple_health_workouts_json_filename_str = apple_health_workouts_json_filename(current_user.id, time_stamp_str_for_json_file_name)
-    # json_data_path_and_name = os.path.join(current_app.config.get('APPLE_HEALTH_DIR'),apple_health_workouts_request_json_file_name)
-    json_data_path_and_name = os.path.join(current_app.config.get('APPLE_HEALTH_DIR'),apple_health_workouts_json_filename_str)
     logger_bp_apple_health.info(f"- count_of_entries_sent_by_ios (this time): {count_of_entries_sent_by_ios} -")
 
-    # new_data_dict = {}
-
+    ### Necessary for What Sticks 11 Apple Service ###################
+    apple_health_workouts_json_filename_str = apple_health_workouts_json_filename(current_user.id, time_stamp_str_for_json_file_name)
+    json_data_path_and_name = os.path.join(current_app.config.get('APPLE_HEALTH_DIR'),apple_health_workouts_json_filename_str)
+    
     with open(json_data_path_and_name, 'w') as file:
         json.dump(apple_health_workouts_json, file, indent=4)
-
-    #############################
-    # Since the data process flow makes apple workouts first this is the end of the processing for this endpoint;
+    ### End Necessary for What Sticks 11 Apple Service ###################
+    
+    ####################################################################################################################
+    # NOTE: Since the data process flow makes apple workouts first this is the end of the processing for this endpoint;
     # receive_apple_health_data endpoint will kickoff What Sticks Apple Service
     # What Sticks Apple Service will look for "AppleWorkouts-user_id\(userId)-\(dateString).json" file for current user
-    ####################################
-    response_dict = {
-        'message': "AppleWorkouts .json file stored for user",
-    }
+    ####################################################################################################################
 
+    response_dict = {'message': "AppleWorkouts .json file stored for user"}
     logger_bp_apple_health.info(f"---> WSAPI > receive_apple_workouts_data respone for <-----")
     logger_bp_apple_health.info(f"{response_dict}")
     return jsonify(response_dict)
