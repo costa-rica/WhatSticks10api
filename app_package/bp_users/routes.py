@@ -67,7 +67,10 @@ def login():
             user_object_for_swift_app['email'] = user.email
             user_object_for_swift_app['username'] = user.username
             # cannot return password because it is encrypted
-            user_object_for_swift_app['token'] = serializer.dumps({'user_id': user.id})
+            # user_object_for_swift_app['token'] = serializer.dumps({'user_id': user.id})
+            # Token expires in 3600 seconds (1 hour)
+            user_object_for_swift_app['token'] = serializer.dumps({'user_id': user.id}, expires_in=3600)
+
             user_object_for_swift_app['timezone'] = user.timezone
             user_object_for_swift_app['location_permission'] = str(user.location_permission)
             user_object_for_swift_app['location_reoccuring_permission'] = str(user.location_reoccuring_permission)
