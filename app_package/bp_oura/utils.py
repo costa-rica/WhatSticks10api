@@ -2,30 +2,14 @@ import os
 import json
 import requests
 from flask import current_app
-from ws_models import sess, inspect, Users, OuraToken, OuraSleepDescriptions
+from ws_models import DatabaseSession, inspect, Users, OuraToken, OuraSleepDescriptions
 from app_package._common.utilities import custom_logger, wrap_up_session
 
 logger_bp_oura = custom_logger('bp_oura.log')
-# import logging
-# from logging.handlers import RotatingFileHandler
-
-# formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
-# formatter_terminal = logging.Formatter('%(asctime)s:%(filename)s:%(name)s:%(message)s')
-
-# logger_bp_oura = logging.getLogger(__name__)
-# logger_bp_oura.setLevel(logging.DEBUG)
-
-# file_handler = RotatingFileHandler(os.path.join(os.environ.get('API_ROOT'),'logs','oura.log'), mode='a', maxBytes=5*1024*1024,backupCount=2)
-# file_handler.setFormatter(formatter)
-
-# stream_handler = logging.StreamHandler()
-# stream_handler.setFormatter(formatter_terminal)
-
-# logger_bp_oura.addHandler(file_handler)
-# logger_bp_oura.addHandler(stream_handler)
 
 
 def add_oura_sleep_to_OuraSleepDescriptions(user_id, token_id, response_oura_sleep):
+    db_session = DatabaseSession()
     if isinstance(response_oura_sleep, dict):
         list_oura_sleep_sessions = response_oura_sleep.get('sleep')
         print("- oura file read here -")
@@ -45,7 +29,7 @@ def add_oura_sleep_to_OuraSleepDescriptions(user_id, token_id, response_oura_sle
 
     for session in list_oura_sleep_sessions:
         # Adjust the filter criteria based on your specific columns and values
-        exists = sess.query(OuraSleepDescriptions).filter_by(
+        exists = db_session.query(OuraSleepDescriptions).filter_by(
             summary_date=session['summary_date'],
             user_id=user_id
         ).scalar() is not None
@@ -63,22 +47,19 @@ def add_oura_sleep_to_OuraSleepDescriptions(user_id, token_id, response_oura_sle
             new_oura_session = OuraSleepDescriptions(**filtered_dict)
             
             # new_oura_session = OuraSleepDescriptions(**session)
-            sess.add(new_oura_session)
-            sess.commit()
+            db_session.add(new_oura_session)
+            wrap_up_session(logger_bp_oura, db_session)
             count_added += 1
         else:
             count_already_existing += 1
     
-
-    # user_oura_session_count = sess.get(OuraSleepDescriptions,user_id)
-    user_oura_sessions = sess.query(OuraSleepDescriptions).filter_by(user_id=user_id).all()
+    user_oura_sessions = db_session.query(OuraSleepDescriptions).filter_by(user_id=user_id).all()
 
     logger_bp_oura.info(f"Sleep sessions count: {count_of_sleep}, added: {count_added}, already existed: {count_already_existing}")
     dict_summary = {}
     dict_summary["sleep_sessions_added"] = "{:,}".format(count_added)
     dict_summary["record_count"] = "{:,}".format(len(user_oura_sessions))
 
-
-
+    wrap_up_session(logger_bp_oura, db_session)
     return dict_summary
     

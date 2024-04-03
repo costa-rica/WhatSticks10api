@@ -1,9 +1,8 @@
 from flask import Flask
-# from ws_config import ConfigWorkstation, ConfigDev, ConfigProd
-from app_package.config import config
+from ._common.config import config
+from ._common.utilities import login_manager, custom_logger_init, \
+    teardown_appcontext
 import os
-import logging
-from logging.handlers import RotatingFileHandler
 from pytz import timezone
 from datetime import datetime
 from flask_mail import Mail
@@ -12,31 +11,7 @@ from ws_models import Base, engine
 if not os.path.exists(os.path.join(os.environ.get('API_ROOT'),'logs')):
     os.makedirs(os.path.join(os.environ.get('API_ROOT'), 'logs'))
 
-# timezone 
-def timetz(*args):
-    return datetime.now(timezone('Europe/Paris') ).timetuple()
-
-logging.Formatter.converter = timetz
-
-formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
-formatter_terminal = logging.Formatter('%(asctime)s:%(filename)s:%(name)s:%(message)s')
-
-logger_init = logging.getLogger('__init__')
-logger_init.setLevel(logging.DEBUG)
-
-file_handler = RotatingFileHandler(os.path.join(os.environ.get('API_ROOT'),'logs','__init__.log'), mode='a', maxBytes=5*1024*1024,backupCount=2)
-file_handler.setFormatter(formatter)
-
-stream_handler = logging.StreamHandler()
-stream_handler.setFormatter(formatter_terminal)
-
-stream_handler_tz = logging.StreamHandler()
-
-logger_init.addHandler(file_handler)
-logger_init.addHandler(stream_handler)
-
-logging.getLogger('werkzeug').setLevel(logging.DEBUG)
-logging.getLogger('werkzeug').addHandler(file_handler)
+logger_init = custom_logger_init()
 
 logger_init.info(f'--- Starting WhatSticks10 API ---')
 logger_init.info(f'ACTIVATE_TECHNICAL_DIFFICULTIES_ALERT: {config.ACTIVATE_TECHNICAL_DIFFICULTIES_ALERT}')
@@ -45,13 +20,14 @@ mail = Mail()
 
 def create_app(config_for_flask = config):
     logger_init.info("- WhatSticks10Api/app_package/__init__.py create_app() -")
-    app = Flask(__name__)   
+    app = Flask(__name__)
+    app.teardown_appcontext(teardown_appcontext)
     app.config.from_object(config_for_flask)
     mail.init_app(app)
 
     ############################################################################
-    ## create folders for DB_ROOT
-    create_folder(config_for_flask.DB_ROOT)
+    ## create folders for PROJECT_RESOURCES
+    create_folder(config_for_flask.PROJECT_RESOURCES)
     create_folder(config_for_flask.DIR_LOGS)
     # database helper files
     create_folder(config_for_flask.DATABASE_HELPER_FILES)

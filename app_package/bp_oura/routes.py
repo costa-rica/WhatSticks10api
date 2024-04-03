@@ -1,6 +1,6 @@
 from flask import Blueprint
-from flask import request, jsonify, make_response, current_app
-from ws_models import sess, Users, OuraSleepDescriptions, OuraToken
+from flask import request, jsonify, make_response, current_app, g
+from ws_models import DatabaseSession, Users, OuraSleepDescriptions, OuraToken
 from werkzeug.security import generate_password_hash, check_password_hash #password hashing
 import bcrypt
 from datetime import datetime
@@ -10,36 +10,27 @@ import os
 # from logging.handlers import RotatingFileHandler
 import json
 # import socket
-from app_package.utilsDecorators import token_required
+# from app_package.utilsDecorators import token_required
+from app_package._common.token_decorator import token_required
 import requests
 from app_package.bp_oura.utils import add_oura_sleep_to_OuraSleepDescriptions
 from app_package._common.utilities import custom_logger, wrap_up_session
 
 logger_bp_oura = custom_logger('bp_oura.log')
-
-# formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
-# formatter_terminal = logging.Formatter('%(asctime)s:%(filename)s:%(name)s:%(message)s')
-
-# logger_bp_oura = logging.getLogger(__name__)
-# logger_bp_oura.setLevel(logging.DEBUG)
-
-# file_handler = RotatingFileHandler(os.path.join(os.environ.get('API_ROOT'),'logs','oura.log'), mode='a', maxBytes=5*1024*1024,backupCount=2)
-# file_handler.setFormatter(formatter)
-
-# stream_handler = logging.StreamHandler()
-# stream_handler.setFormatter(formatter_terminal)
-
-# logger_bp_oura.addHandler(file_handler)
-# logger_bp_oura.addHandler(stream_handler)
-
 bp_oura = Blueprint('bp_oura', __name__)
 logger_bp_oura.info(f'- WhatSticks10 API users Bluprints initialized')
 
+
+@bp_oura.before_request
+def before_request():
+    # Assign a new session to a global `g` object, accessible during the whole request
+    g.db_session = DatabaseSession()
 
 @bp_oura.route('/add_oura_token', methods=['POST'])
 @token_required
 def add_oura_token(current_user):
     logger_bp_oura.info(f"- add_oura_token endpoint pinged -")
+    db_session = g.db_session
     logger_bp_oura.info(f"current user: {current_user}")
     
     try:
@@ -54,8 +45,8 @@ def add_oura_token(current_user):
     new_oura_token = request_data.get('oura_token')
     logger_bp_oura.info(f'new_oura_token: {new_oura_token}')
     new_token_record = OuraToken(token=new_oura_token, user_id=current_user.id)
-    sess.add(new_token_record)
-    sess.commit()
+    db_session.add(new_token_record)
+
     response_dict = {}
     response_dict["message"] = f"Successfully added token for {current_user.email} !"
     return jsonify(response_dict)
@@ -65,6 +56,7 @@ def add_oura_token(current_user):
 @token_required
 def add_oura_sleep_sessions(current_user):
     logger_bp_oura.info(f"- add_oura_sleep_sessions endpoint pinged -")
+    db_session = g.db_session
     response_dict = {}
     # try:
     #     request_json = request.json
@@ -92,7 +84,7 @@ def add_oura_sleep_sessions(current_user):
     else:
         logger_bp_oura.info(f"No file named: {os.path.join(current_app.config.get('DIR_DB_AUX_OURA_SLEEP_RESPONSES'),file_name_oura_json)}")
         # get user's token
-        OURA_API_TOKEN =  sess.query(OuraToken).filter_by(user_id=current_user.id).first().token
+        OURA_API_TOKEN =  db_session.query(OuraToken).filter_by(user_id=current_user.id).first().token
         # call oura
         response_oura_sleep = requests.get(current_app.config.get('OURA_API_URL_BASE'), headers={"Authorization": "Bearer " + OURA_API_TOKEN})
 

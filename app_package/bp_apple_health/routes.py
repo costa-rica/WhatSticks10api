@@ -1,6 +1,6 @@
 from flask import Blueprint
 from flask import request, jsonify, make_response, current_app
-from ws_models import sess, Users, AppleHealthQuantityCategory, AppleHealthWorkout
+from ws_models import DatabaseSession, Users, AppleHealthQuantityCategory, AppleHealthWorkout
 from werkzeug.security import generate_password_hash, check_password_hash #password hashing
 import bcrypt
 from datetime import datetime
@@ -10,7 +10,8 @@ import os
 # from logging.handlers import RotatingFileHandler
 import json
 # import socket
-from app_package.utilsDecorators import token_required
+# from app_package.utilsDecorators import token_required
+from app_package._common.token_decorator import token_required
 import requests
 # from app_package.bp_apple_health.utils import add_oura_sleep_to_OuraSleepDescriptions
 from sqlalchemy import and_
@@ -23,17 +24,20 @@ from app_package._common.utilities import custom_logger, wrap_up_session, \
     save_request_data
 
 logger_bp_apple_health = custom_logger('bp_apple_health.log')
-
-
-
 bp_apple_health = Blueprint('bp_apple_health', __name__)
 logger_bp_apple_health.info(f'- WhatSticks10 API users Bluprints initialized')
+
+
+@bp_apple_health.before_request
+def before_request():
+    # Assign a new session to a global `g` object, accessible during the whole request
+    g.db_session = DatabaseSession()
+
 
 @bp_apple_health.route('/delete_apple_health_for_user', methods=['POST'])
 @token_required
 def delete_apple_health_for_user(current_user):
     logger_bp_apple_health.info(f"- accessed  delete_apple_health_for_user endpoint-")
-
     deleted_records = 0
 
     delete_apple_health = delete_user_from_table(current_user, AppleHealthQuantityCategory)
@@ -197,6 +201,7 @@ def receive_apple_workouts_data(current_user):
 # @token_required
 def apple_health_subprocess_complete():
     logger_bp_apple_health.info(f"- accessed apple_health_subprocess_complete -")
+    db_session = g.db_session
     ws_api_password = request.json.get('WS_API_PASSWORD')
     logger_bp_apple_health.info(f"All Headers: {request.headers}")
 
@@ -208,9 +213,9 @@ def apple_health_subprocess_complete():
 
         count_of_records_added_to_db = request.json.get('count_of_records_added_to_db')
         user_id = request.json.get('user_id')
-        user_obj = sess.get(Users,int(user_id))
+        user_obj = db_session.get(Users,int(user_id))
         
-        if user_obj.email != "nrodrig1@gmail.com":
+        if user_obj.email not in current_app.config.get('LIST_NO_CONFIRMASTION_EMAILS'):
             send_confirm_email(user_obj.email, count_of_records_added_to_db)
         logger_bp_apple_health.info(f"- WSAPI finished sending email to user informing data added to db -")
     

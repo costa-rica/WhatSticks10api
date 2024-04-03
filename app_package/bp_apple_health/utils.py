@@ -1,6 +1,6 @@
 from flask import Blueprint
 from flask import request, jsonify, make_response, current_app
-from ws_models import sess, engine, AppleHealthQuantityCategory
+from ws_models import engine, DatabaseSession, AppleHealthQuantityCategory
 from werkzeug.security import generate_password_hash, check_password_hash #password hashing
 import bcrypt
 from datetime import datetime
@@ -10,7 +10,7 @@ import os
 # from logging.handlers import RotatingFileHandler
 import json
 # import socket
-from app_package.utilsDecorators import token_required
+# from app_package.utilsDecorators import token_required
 import requests
 from sqlalchemy.exc import SQLAlchemyError
 import pandas as pd
@@ -20,27 +20,13 @@ from app_package._common.utilities import custom_logger, wrap_up_session
 
 logger_bp_apple_health = custom_logger('bp_apple_health.log')
 
-
-# formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
-# formatter_terminal = logging.Formatter('%(asctime)s:%(filename)s:%(name)s:%(message)s')
-
-# logger_bp_apple_health = logging.getLogger(__name__)
-# logger_bp_apple_health.setLevel(logging.DEBUG)
-
-# file_handler = RotatingFileHandler(os.path.join(os.environ.get('API_ROOT'),'logs','oura.log'), mode='a', maxBytes=5*1024*1024,backupCount=2)
-# file_handler.setFormatter(formatter)
-
-# stream_handler = logging.StreamHandler()
-# stream_handler.setFormatter(formatter_terminal)
-
-# logger_bp_apple_health.addHandler(file_handler)
-# logger_bp_apple_health.addHandler(stream_handler)
-
-bp_apple_health = Blueprint('bp_apple_health', __name__)
+# bp_apple_health = Blueprint('bp_apple_health', __name__)
 
 
 def add_apple_health_to_database(user_id, apple_json_data_filename, check_all_bool=False):
     logger_bp_apple_health.info(f"- accessed add_apple_health_to_database for user_id: {user_id} -")
+    db_session = DatabaseSession()
+
     user_id = int(user_id)
 
     df_existing_user_data = get_existing_user_data(user_id)
@@ -96,7 +82,7 @@ def add_apple_health_to_database(user_id, apple_json_data_filename, check_all_bo
     count_of_records_added_to_db = df_unique_new_user_data.to_sql('apple_health_kit', con=engine, if_exists='append', index=False)
 
     logger_bp_apple_health.info(f"- count_of_records_added_to_db: {count_of_records_added_to_db} -")
-    count_of_user_apple_health_records = sess.query(AppleHealthQuantityCategory).filter_by(user_id=user_id).count()
+    count_of_user_apple_health_records = db_session.query(AppleHealthQuantityCategory).filter_by(user_id=user_id).count()
     logger_bp_apple_health.info(f"- count of records in db: {count_of_user_apple_health_records}")
     logger_bp_apple_health.info(f"--- add_apple_health_to_database COMPLETE ---")
     
@@ -107,19 +93,24 @@ def add_apple_health_to_database(user_id, apple_json_data_filename, check_all_bo
         'count_of_added_records': f"{count_of_records_added_to_db:,}"
     }
     logger_bp_apple_health.info(f"- response_dict: {response_dict} -")
+    wrap_up_session(logger_bp_apple_health,db_session)
     return response_dict
 
 
 def get_existing_user_data(user_id):
     try:
-        # Define the query using a parameterized statement for safety
-        query = """
-        SELECT * 
-        FROM apple_health_kit 
-        WHERE user_id = :user_id;
-        """
+        # # Define the query using a parameterized statement for safety
+        # query = """
+        # SELECT * 
+        # FROM apple_health_kit 
+        # WHERE user_id = :user_id;
+        # """
+
+        db_query = db_session.query(AppleHealthQuantityCategory).filter_by(user_id=user_id)
+        # df_from_db = pd.read_sql(df_db_query.statement, engine)
         # Execute the query and create a DataFrame
-        df_existing_user_data = pd.read_sql_query(query, engine, params={'user_id': user_id})
+        # df_existing_user_data = pd.read_sql_query(query, engine, params={'user_id': user_id})
+        df_existing_user_data = pd.read_sql_query(db_query, engine, params={'user_id': user_id})
         return df_existing_user_data
     except SQLAlchemyError as e:
         logger_bp_apple_health.info(f"An error occurred: {e}")

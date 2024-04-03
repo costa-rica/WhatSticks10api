@@ -1,6 +1,6 @@
 from flask import current_app, url_for
 import json
-from ws_models import sess, Users, Locations
+from ws_models import DatabaseSession, Users, Locations
 from flask_mail import Message
 from app_package import mail
 import os
@@ -10,31 +10,10 @@ from logging.handlers import RotatingFileHandler
 import pandas as pd
 import requests
 from datetime import datetime 
-from ws_models import sess, UserLocationDay, Locations
+from ws_models import DatabaseSession, UserLocationDay, Locations
 from app_package._common.utilities import custom_logger, wrap_up_session
 
 logger_bp_users = custom_logger('bp_users.log')
-
-# #Setting up Logger
-# formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
-# formatter_terminal = logging.Formatter('%(asctime)s:%(filename)s:%(name)s:%(message)s')
-
-# #initialize a logger
-# logger_bp_users = logging.getLogger(__name__)
-# logger_bp_users.setLevel(logging.DEBUG)
-
-
-# #where do we store logging information
-# file_handler = RotatingFileHandler(os.path.join(os.environ.get('API_ROOT'),"logs",'users_routes.log'), mode='a', maxBytes=5*1024*1024,backupCount=2)
-# file_handler.setFormatter(formatter)
-
-# #where the stream_handler will print
-# stream_handler = logging.StreamHandler()
-# stream_handler.setFormatter(formatter_terminal)
-
-# # logger_sched.handlers.clear() #<--- This was useful somewhere for duplicate logs
-# logger_bp_users.addHandler(file_handler)
-# logger_bp_users.addHandler(stream_handler)
 
 
 def send_reset_email(user):
@@ -47,13 +26,6 @@ def send_reset_email(user):
     # Replace 'url_for' with the full external reset URL, appending the token as a query parameter
     base_url = website_url()
     reset_url = f"{base_url}/reset_password?token={token}"
-    # match os.environ.get('WS_CONFIG_TYPE'):
-    #     case 'dev':
-    #         reset_url = f"https://dev.what-sticks.com/reset_password?token={token}"
-    #     case 'prod':
-    #         reset_url = f"https://what-sticks.com/reset_password?token={token}"
-    #     case _:
-    #         reset_url = f"http://localhost:5000/reset_password?token={token}"
     
     long_f_string = (
         "To reset your password, visit the following link:" +
@@ -65,11 +37,6 @@ def send_reset_email(user):
 
     mail.send(msg)
 
-    #     msg.body = f'''To reset your password, visit the following link:
-    # {url_for('users.reset_token', token=token, _external=True)}
-
-    # If you did not make this request, ignore email and there will be no change
-    # '''
 def send_confirm_email(email):
     if os.environ.get('WS_CONFIG_TYPE') != 'workstation':
         logger_bp_users.info(f"-- sending email to {email} --")
@@ -116,17 +83,18 @@ def delete_user_data_files(current_user):
 
 
 def delete_user_from_table(current_user, table):
+    db_session = DatabaseSession()
     count_deleted_rows = 0
     error = None
     try:
         if table.__tablename__ != "users":
-            count_deleted_rows = sess.query(table).filter_by(user_id = current_user.id).delete()
+            count_deleted_rows = db_session.query(table).filter_by(user_id = current_user.id).delete()
         else:
-            count_deleted_rows = sess.query(table).filter_by(id = current_user.id).delete()
-        sess.commit()
+            count_deleted_rows = db_session.query(table).filter_by(id = current_user.id).delete()
+        wrap_up_session(logger_bp_users, db_session)
         response_message = f"Successfully deleted {count_deleted_rows} records from {table.__tablename__}"
     except Exception as e:
-        sess.rollback()
+        db_session.rollback()
         error_message = f"Failed to delete data from {table.__tablename__}, error: {e}"
         logger_bp_users.info(error_message)
         error = e
