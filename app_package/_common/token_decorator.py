@@ -1,5 +1,5 @@
 from functools import wraps
-from flask import request, jsonify,current_app
+from flask import request, jsonify,current_app,g
 # from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous.url_safe import URLSafeTimedSerializer#new 2023
 from ws_models import DatabaseSession, Users
@@ -14,8 +14,9 @@ def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         logger_token_decorator.info(f'- token_required decorator accessed -')
-        db_session = DatabaseSession()
-        # print('**in decorator**')
+        # db_session = DatabaseSession()
+        # g.db_session = db_session  # In the token_required decorator
+        db_session = g.db_session
         token = None
 
         if 'x-access-token' in request.headers:
@@ -37,7 +38,7 @@ def token_required(f):
             logger_token_decorator.info('----')
             current_user = db_session.get(Users,int(decrypted_token_dict['user_id']))
             logger_token_decorator.info(f'- token decrypted correctly -')
-            wrap_up_session(logger_token_decorator, db_session)
+            # wrap_up_session(logger_token_decorator, db_session)
         except Exception as e:
             logger_token_decorator.info(f"- token NOT decrypted correctly -")
             logger_token_decorator.info(f"- {type(e).__name__}: {e} -")

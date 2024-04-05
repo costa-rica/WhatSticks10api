@@ -383,7 +383,7 @@ def get_reset_password_token():
 @bp_users.route('/reset_password', methods = ["POST"])
 @token_required
 def reset_password(current_user):
-    db_session = g.db_session
+    # db_session = g.db_session
     logger_bp_users.info(f"- accessed: reset_password with token")
     try:
         request_json = request.json
@@ -397,11 +397,11 @@ def reset_password(current_user):
     if current_user:
         logger_bp_users.info(f"---- > in if current_user")
         hash_pw = bcrypt.hashpw(request_json.get('password_text').encode(), salt)
-        user = db_session.get(Users, current_user.id)
-        logger_bp_users.info(f"user: {user}")
-        # current_user.password = hash_pw
-        user.password = hash_pw
-        db_session.commit()
+        # user = db_session.get(Users, current_user.id)
+        logger_bp_users.info(f"user: {current_user}")
+        current_user.password = hash_pw
+        # user.password = hash_pw
+        # db_session.commit()
         # sess.commit()
         logger_bp_users.info(f"**** ************************ ******")
         logger_bp_users.info(f"**** changed current user and removed sess.commit() ******")
@@ -494,6 +494,8 @@ def update_user_location_with_lat_lon(current_user):
 @token_required
 def update_user_location_with_user_location_json(current_user):
     logger_bp_users.info(f"- update_user_location_with_user_location_json endpoint pinged -")
+    db_session = g.db_session
+    logger_bp_users.info(f"- created db_session id: {id(db_session)} -")
     try:
         request_json = request.json
         logger_bp_users.info(f"request_json: {request_json}")
@@ -511,29 +513,29 @@ def update_user_location_with_user_location_json(current_user):
     with open(json_data_path_and_name, 'w') as file:
         json.dump(user_location_list, file, indent=4)
     
-    try:
-        for location in user_location_list:
-            dateTimeUtc = location.get('dateTimeUtc')
-            latitude = location.get('latitude')
-            longitude = location.get('longitude')
-            add_user_loc_day_process(current_user.id,latitude, longitude, dateTimeUtc)
+    # try:
+    for location in user_location_list:
+        dateTimeUtc = location.get('dateTimeUtc')
+        latitude = location.get('latitude')
+        longitude = location.get('longitude')
+        add_user_loc_day_process(db_session, current_user.id, latitude, longitude, dateTimeUtc)
 
-        logger_bp_users.info(f"- successfully added user_location.json data to UserLocationDay -")
+    logger_bp_users.info(f"- successfully added user_location.json data to UserLocationDay -")
 
-        response_dict = {}
-        response_dict['alert_title'] = "Success!"# < -- This is expected response for WSiOS to delete old user_locations.json
-        response_dict['alert_message'] = ""
+    response_dict = {}
+    response_dict['alert_title'] = "Success!"# < -- This is expected response for WSiOS to delete old user_locations.json
+    response_dict['alert_message'] = ""
 
-        return jsonify(response_dict)
-    except Exception as e:
-        logger_bp_users.info(f"- Error trying to add user_location.json from iOS -")
-        logger_bp_users.info(f"- {type(e).__name__}: {e} -")
+    return jsonify(response_dict)
+    # except Exception as e:
+    #     logger_bp_users.info(f"- Error trying to add user_location.json from iOS -")
+    #     logger_bp_users.info(f"- {type(e).__name__}: {e} -")
 
-        response_dict = {}
-        response_dict['alert_title'] = "Failed"
-        response_dict['alert_message'] = "Something went wrong adding user's location to database."
+    #     response_dict = {}
+    #     response_dict['alert_title'] = "Failed"
+    #     response_dict['alert_message'] = "Something went wrong adding user's location to database."
 
-        return jsonify(response_dict)
+    #     return jsonify(response_dict)
 
 
 
