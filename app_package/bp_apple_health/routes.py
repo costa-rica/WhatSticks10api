@@ -1,5 +1,5 @@
 from flask import Blueprint
-from flask import request, jsonify, make_response, current_app
+from flask import request, jsonify, make_response, current_app, g
 from ws_models import DatabaseSession, Users, AppleHealthQuantityCategory, AppleHealthWorkout
 from werkzeug.security import generate_password_hash, check_password_hash #password hashing
 import bcrypt

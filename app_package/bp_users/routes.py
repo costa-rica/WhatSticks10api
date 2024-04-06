@@ -481,7 +481,7 @@ def update_user_location_with_lat_lon(current_user):
     formatted_datetime = current_datetime.strftime('%Y%m%d-%H%M')
 
     # Add to UserLocationDay (and Location, if necessary)
-    location_id = add_user_loc_day_process(current_user.id,latitude, longitude, formatted_datetime)
+    location_id = add_user_loc_day_process(db_session, current_user.id,latitude, longitude, formatted_datetime)
 
     user_location = db_session.get(Locations, location_id)
     response_dict["message"] = f"Updated user location in UserLocDay Table with {user_location.city}, {user_location.country}"
