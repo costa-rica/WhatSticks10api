@@ -30,8 +30,16 @@ logger_bp_apple_health.info(f'- WhatSticks10 API users Bluprints initialized')
 
 @bp_apple_health.before_request
 def before_request():
+    logger_bp_apple_health.info(f"- in def before_request() -")
     # Assign a new session to a global `g` object, accessible during the whole request
     g.db_session = DatabaseSession()
+    if request.referrer:
+        logger_bp_apple_health.info(f"- request.referrer: {request.referrer} ")
+    
+    logger_bp_apple_health.info(f"- db_session ID: {id(g.db_session)} ")
+    
+    if request.endpoint:
+        logger_bp_apple_health.info(f"- request.endpoint: {request.endpoint} ")
 
 
 @bp_apple_health.route('/delete_apple_health_for_user', methods=['POST'])
