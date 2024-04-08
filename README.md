@@ -29,4 +29,28 @@ ACTIVATE_TECHNICAL_DIFFICULTIES_ALERT is a variable in ws_config/config.py. If i
 If it is set to anything except for `True`, it will allow the normal logging in and registering function.
 
 
-
+## Project Folder Structure
+```
+├── README.md
+├── app_package
+│   ├── __init__.py
+│   ├── _common
+│   │   ├── __pycache__
+│   │   ├── config.py
+│   │   ├── token_decorator.py
+│   │   └── utilities.py
+│   ├── bp_apple_health
+│   │   ├── __pycache__
+│   │   ├── routes.py
+│   │   └── utils.py
+│   ├── bp_oura
+│   │   ├── __pycache__
+│   │   ├── routes.py
+│   │   └── utils.py
+│   └── bp_users
+│       ├── __pycache__
+│       ├── routes.py
+│       └── utils.py
+├── requirements.txt
+└── run.py
+```

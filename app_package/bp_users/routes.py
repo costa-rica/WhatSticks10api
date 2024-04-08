@@ -28,9 +28,16 @@ salt = bcrypt.gensalt()
 
 @bp_users.before_request
 def before_request():
+    logger_bp_users.info(f"- in def before_request() -")
     # Assign a new session to a global `g` object, accessible during the whole request
     g.db_session = DatabaseSession()
-
+    if request.referrer:
+        logger_bp_users.info(f"- request.referrer: {request.referrer} ")
+    
+    logger_bp_users.info(f"- db_session ID: {id(g.db_session)} ")
+    
+    if request.endpoint:
+        logger_bp_users.info(f"- request.endpoint: {request.endpoint} ")
 
 @bp_users.route('/are_we_working', methods=['GET'])
 def are_we_working():
@@ -58,7 +65,8 @@ def login():
     if not auth or not auth.username or not auth.password:
         logger_bp_users.info(f"- /login failed: if not auth or not auth.username or not auth.password")
         return make_response('Could not verify', 401)
-
+    logger_bp_users.info(f"- Checking Broken Pipe error -")
+    logger_bp_users.info(f"- db_session ID: {id(db_session)} ")
     user = db_session.query(Users).filter_by(email= auth.username).first()
 
     if not user:
