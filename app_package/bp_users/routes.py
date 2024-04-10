@@ -483,13 +483,13 @@ def update_user_location_with_lat_lon(current_user):
     logger_bp_users.info(f"**** ************************ ******")
 
     # Get the current datetime
-    current_datetime = datetime.now()
+    current_utc_datetime = datetime.utcnow()
 
     # Convert the datetime to a string in the specified format
-    formatted_datetime = current_datetime.strftime('%Y%m%d-%H%M')
+    formatted_datetime_utc = current_utc_datetime.strftime('%Y%m%d-%H%M')
 
     # Add to UserLocationDay (and Location, if necessary)
-    location_id = add_user_loc_day_process(db_session, current_user.id,latitude, longitude, formatted_datetime)
+    location_id = add_user_loc_day_process(db_session, current_user.id,latitude, longitude, formatted_datetime_utc)
 
     user_location = db_session.get(Locations, location_id)
     response_dict["message"] = f"Updated user location in UserLocDay Table with {user_location.city}, {user_location.country}"
@@ -523,10 +523,10 @@ def update_user_location_with_user_location_json(current_user):
     
     # try:
     for location in user_location_list:
-        dateTimeUtc = location.get('dateTimeUtc')
+        formatted_datetime_utc = location.get('dateTimeUtc')
         latitude = location.get('latitude')
         longitude = location.get('longitude')
-        add_user_loc_day_process(db_session, current_user.id, latitude, longitude, dateTimeUtc)
+        add_user_loc_day_process(db_session, current_user.id, latitude, longitude, formatted_datetime_utc)
 
     logger_bp_users.info(f"- successfully added user_location.json data to UserLocationDay -")
 
