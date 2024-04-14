@@ -110,7 +110,7 @@ def get_existing_user_data(user_id):
         # df_from_db = pd.read_sql(df_db_query.statement, engine)
         # Execute the query and create a DataFrame
         # df_existing_user_data = pd.read_sql_query(query, engine, params={'user_id': user_id})
-        df_existing_user_data = pd.read_sql_query(db_query, engine, params={'user_id': user_id})
+        df_existing_user_data = pd.read_sql_query(db_query.statement, engine, params={'user_id': user_id})
         return df_existing_user_data
     except SQLAlchemyError as e:
         logger_bp_apple_health.info(f"An error occurred: {e}")
