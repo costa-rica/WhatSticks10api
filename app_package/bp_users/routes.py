@@ -19,7 +19,7 @@ from sqlalchemy import desc
 from ws_utilities import convert_lat_lon_to_timezone_string, convert_lat_lon_to_city_country, \
     find_user_location, add_user_loc_day_process
 import requests
-from app_package._common.utilities import custom_logger
+from app_package._common.utilities import custom_logger, wrap_up_session
 
 logger_bp_users = custom_logger('bp_users.log')
 bp_users = Blueprint('bp_users', __name__)
@@ -38,6 +38,13 @@ def before_request():
     
     if request.endpoint:
         logger_bp_users.info(f"- request.endpoint: {request.endpoint} ")
+
+@bp_users.after_request
+def after_request(response):
+    logger_bp_users.info(f"---- after_request --- ")
+    if hasattr(g, 'db_session'):
+        wrap_up_session(logger_bp_users, g.db_session)
+    return response
 
 @bp_users.route('/are_we_working', methods=['GET'])
 def are_we_working():

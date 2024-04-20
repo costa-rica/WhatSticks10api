@@ -1,10 +1,19 @@
 from flask import Blueprint, jsonify, g
 import werkzeug.exceptions
-from app_package._common.utilities import custom_logger
+from app_package._common.utilities import custom_logger, wrap_up_session
 
 # Assuming the logger name is a typo and fixing it.
 logger_bp_errors = custom_logger('bp_errors.log')
 bp_errors = Blueprint('bp_errors', __name__)
+
+
+
+@bp_errors.after_request
+def after_request(response):
+    logger_bp_errors.info(f"---- after_request --- ")
+    if hasattr(g, 'db_session'):
+        wrap_up_session(logger_bp_errors, g.db_session)
+    return response
 
 @bp_errors.app_errorhandler(Exception)
 def handle_exception(e):

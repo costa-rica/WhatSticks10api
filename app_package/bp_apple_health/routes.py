@@ -42,6 +42,13 @@ def before_request():
         logger_bp_apple_health.info(f"- request.endpoint: {request.endpoint} ")
 
 
+@bp_apple_health.after_request
+def after_request(response):
+    logger_bp_apple_health.info(f"---- after_request --- ")
+    if hasattr(g, 'db_session'):
+        wrap_up_session(logger_bp_apple_health, g.db_session)
+    return response
+
 @bp_apple_health.route('/delete_apple_health_for_user', methods=['POST'])
 @token_required
 def delete_apple_health_for_user(current_user):

@@ -34,6 +34,14 @@ def before_request():
     if request.endpoint:
         logger_bp_oura.info(f"- request.endpoint: {request.endpoint} ")
 
+
+@bp_oura.after_request
+def after_request(response):
+    logger_bp_oura.info(f"---- after_request --- ")
+    if hasattr(g, 'db_session'):
+        wrap_up_session(logger_bp_oura, g.db_session)
+    return response
+
 @bp_oura.route('/add_oura_token', methods=['POST'])
 @token_required
 def add_oura_token(current_user):
