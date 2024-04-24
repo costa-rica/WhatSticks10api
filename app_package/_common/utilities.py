@@ -6,10 +6,7 @@ from flask_login import LoginManager
 from pytz import timezone
 from datetime import datetime
 from flask import g
-
-# import os
 import json
-from datetime import datetime
 from flask import current_app, request
 
 login_manager= LoginManager()
